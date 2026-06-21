@@ -26,6 +26,10 @@ export async function addRetailer(
   if (!Number.isFinite(creditLimitTaka) || creditLimitTaka <= 0)
     return { status: "error", message: "Credit limit must be a positive amount." };
 
+  const tradeLicenseNo = String(formData.get("tradeLicenseNo") ?? "").trim() || null;
+  const tradeLicenseExpiry = String(formData.get("tradeLicenseExpiry") ?? "").trim();
+  const isVerified = formData.get("isVerified") === "on";
+
   try {
     await prisma.retailer.create({
       data: {
@@ -36,6 +40,9 @@ export async function addRetailer(
         creditLimitPoisha: toPoisha(creditLimitTaka),
         currentBalancePoisha: 0,
         isAuthorized: true,
+        tradeLicenseNo,
+        tradeLicenseExpiry: tradeLicenseExpiry ? new Date(tradeLicenseExpiry) : null,
+        isVerified,
       },
     });
 
@@ -88,9 +95,18 @@ export async function updateRetailer(
       };
     }
 
+    const tradeLicenseNo = String(formData.get("tradeLicenseNo") ?? "").trim() || null;
+    const tradeLicenseExpiry = String(formData.get("tradeLicenseExpiry") ?? "").trim();
+    const isVerified = formData.get("isVerified") === "on";
+
     await prisma.retailer.update({
       where: { id },
-      data: { shopName, proprietorName, phone, address, creditLimitPoisha: newLimit },
+      data: {
+        shopName, proprietorName, phone, address, creditLimitPoisha: newLimit,
+        tradeLicenseNo,
+        tradeLicenseExpiry: tradeLicenseExpiry ? new Date(tradeLicenseExpiry) : null,
+        isVerified,
+      },
     });
 
     revalidatePath("/retailers");

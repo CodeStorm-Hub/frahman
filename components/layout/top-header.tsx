@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { navItems } from "./nav-config";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function TopHeader() {
   const pathname = usePathname();
@@ -17,7 +18,7 @@ export function TopHeader() {
       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary">
         <span className="text-xs font-bold text-sidebar-primary-foreground">F</span>
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold leading-none text-foreground">
           {current.label}
         </p>
@@ -25,6 +26,7 @@ export function TopHeader() {
           {current.description}
         </p>
       </div>
+      <ThemeToggle />
     </header>
   );
 }

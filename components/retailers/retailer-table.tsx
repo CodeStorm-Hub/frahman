@@ -19,6 +19,9 @@ export type RetailerRow = {
   creditLimitPoisha: number;
   currentBalancePoisha: number;
   isAuthorized: boolean;
+  tradeLicenseNo?: string | null;
+  tradeLicenseExpiry?: Date | null;
+  isVerified?: boolean;
 };
 
 function utilizationPct(balance: number, limit: number) {

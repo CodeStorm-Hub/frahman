@@ -106,6 +106,22 @@ export function AddRetailerDialog() {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="tradeLicenseNo">Trade License No. <span className="text-muted-foreground">(optional)</span></Label>
+              <Input id="tradeLicenseNo" name="tradeLicenseNo" placeholder="e.g. TL-2024-00123" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="tradeLicenseExpiry">License Expiry <span className="text-muted-foreground">(optional)</span></Label>
+              <Input id="tradeLicenseExpiry" name="tradeLicenseExpiry" type="date" />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input type="checkbox" id="isVerified" name="isVerified" className="h-4 w-4 rounded border-border" />
+            <Label htmlFor="isVerified" className="cursor-pointer font-normal">Mark as verified dealer</Label>
+          </div>
+
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
               Cancel

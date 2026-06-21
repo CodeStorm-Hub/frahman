@@ -77,6 +77,9 @@ export default async function RetailerDetailPage({
               address: retailer.address,
               creditLimitPoisha: retailer.creditLimitPoisha,
               isAuthorized: retailer.isAuthorized,
+              tradeLicenseNo: retailer.tradeLicenseNo,
+              tradeLicenseExpiry: retailer.tradeLicenseExpiry,
+              isVerified: retailer.isVerified,
             }}
           />
           {retailer.currentBalancePoisha > 0 && (

@@ -29,6 +29,9 @@ export type EditableRetailer = {
   address: string;
   creditLimitPoisha: number;
   isAuthorized: boolean;
+  tradeLicenseNo?: string | null;
+  tradeLicenseExpiry?: Date | null;
+  isVerified?: boolean;
 };
 
 export function EditRetailerDialog({ retailer }: { retailer: EditableRetailer }) {
@@ -148,6 +151,41 @@ export function EditRetailerDialog({ retailer }: { retailer: EditableRetailer })
                 required
               />
             </div>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-tradeLicenseNo">Trade License No. <span className="text-muted-foreground text-xs">(optional)</span></Label>
+              <Input
+                id="edit-tradeLicenseNo"
+                name="tradeLicenseNo"
+                defaultValue={retailer.tradeLicenseNo ?? ""}
+                placeholder="e.g. TL-2024-00123"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-tradeLicenseExpiry">License Expiry <span className="text-muted-foreground text-xs">(optional)</span></Label>
+              <Input
+                id="edit-tradeLicenseExpiry"
+                name="tradeLicenseExpiry"
+                type="date"
+                defaultValue={
+                  retailer.tradeLicenseExpiry
+                    ? retailer.tradeLicenseExpiry.toISOString().split("T")[0]
+                    : ""
+                }
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="edit-isVerified"
+              name="isVerified"
+              defaultChecked={retailer.isVerified ?? false}
+              className="h-4 w-4 rounded border-border"
+            />
+            <Label htmlFor="edit-isVerified" className="cursor-pointer font-normal">Verified dealer</Label>
           </div>
         </form>
 

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { navItems } from "./nav-config";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -74,7 +75,10 @@ export function AppSidebar() {
 
       {/* Footer */}
       <div className="shrink-0 border-t border-sidebar-border px-5 py-3">
-        <p className="text-[11px] text-sidebar-foreground/25">Frahman v1.0</p>
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] text-sidebar-foreground/25">Frahman v1.0</p>
+          <ThemeToggle className="h-7 w-7" />
+        </div>
       </div>
     </aside>
   );

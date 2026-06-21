@@ -109,6 +109,11 @@ model Retailer {
   /// Running net balance currently owed by this retailer, in Poisha
   currentBalancePoisha Int
 
+  /// Government-issued trade license number for dealer verification
+  tradeLicenseNo     String?
+  tradeLicenseExpiry DateTime?
+  isVerified         Boolean   @default(false)
+
   invoices SalesInvoice[]
 }
 
