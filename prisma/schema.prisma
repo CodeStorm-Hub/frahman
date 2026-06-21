@@ -183,6 +183,10 @@ model SalesInvoice {
 
   lines        SalesInvoiceLine[]
   journalEntry JournalEntry?
+
+  @@index([retailerId])
+  @@index([invoiceDate])
+  @@index([isPaid])
 }
 
 /// One product line within a SalesInvoice.

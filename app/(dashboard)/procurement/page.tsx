@@ -1,50 +1,58 @@
 import type { Metadata } from "next";
-import { Package2, TrendingUp, Truck } from "lucide-react";
+import { Package2, TrendingUp, Truck, CreditCard } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import prisma from "@/lib/prisma";
+import { formatTaka } from "@/lib/currency";
 import { ProcurementIntakeForm } from "@/components/procurement/intake-form";
 import { StockAdjustmentDialog } from "@/components/procurement/stock-adjustment-dialog";
+import { PaySupplierDialog } from "@/components/procurement/pay-supplier-dialog";
 
 export const metadata: Metadata = { title: "Procurement — Frahman & Brothers" };
-
-function formatTaka(poisha: number): string {
-  const taka = poisha / 100;
-  return "৳" + taka.toLocaleString("en-BD", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString("en-BD", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 export default async function ProcurementPage() {
-  const [products, recentBatches] = await Promise.all([
+  const [products, recentBatches, allStockBatches, apLedger] = await Promise.all([
     prisma.product.findMany({ orderBy: { name: "asc" } }),
     prisma.inventoryBatch.findMany({
       orderBy: { receivedDate: "desc" },
       take: 20,
       include: { product: { select: { name: true } } },
     }),
+    // Unbounded query for adjustment dialog — must show all batches with stock
+    prisma.inventoryBatch.findMany({
+      where: { currentBagsCount: { gt: 0 } },
+      orderBy: { receivedDate: "desc" },
+      include: { product: { select: { name: true } } },
+    }),
+    // AP balance for Pay Supplier button
+    prisma.ledgerLine.aggregate({
+      _sum: { debitPoisha: true, creditPoisha: true },
+      where: { account: { code: "2100" } },
+    }),
   ]);
 
-  // Data for the adjustment dialog (all batches with remaining stock)
-  const adjustmentBatches = recentBatches
-    .filter((b) => b.currentBagsCount > 0)
-    .map((b) => ({
-      id: b.id,
-      governmentChallanNo: b.governmentChallanNo,
-      currentBagsCount: b.currentBagsCount,
-      landedCostPerBagPoisha: b.landedCostPerBagPoisha,
-      product: { name: b.product.name },
-    }));
+  // Data for the adjustment dialog (all batches with remaining stock, not capped at 20)
+  const adjustmentBatches = allStockBatches.map((b) => ({
+    id: b.id,
+    governmentChallanNo: b.governmentChallanNo,
+    currentBagsCount: b.currentBagsCount,
+    landedCostPerBagPoisha: b.landedCostPerBagPoisha,
+    product: { name: b.product.name },
+  }));
 
-  // Summary stats
+  // Summary stats — use currentBagsCount for inventory value (what's actually on hand)
   const totalBatches = recentBatches.length;
   const totalBagsReceived = recentBatches.reduce((s, b) => s + b.initialBagsCount, 0);
-  const totalInventoryValue = recentBatches.reduce(
-    (s, b) => s + b.landedCostPerBagPoisha * b.initialBagsCount,
+  const totalInventoryValue = allStockBatches.reduce(
+    (s, b) => s + b.landedCostPerBagPoisha * b.currentBagsCount,
     0,
   );
+  const apBalancePoisha =
+    (apLedger._sum.creditPoisha ?? 0) - (apLedger._sum.debitPoisha ?? 0);
 
   const stats = [
     {
@@ -62,11 +70,18 @@ export default async function ProcurementPage() {
       bg: "bg-amber-500/10",
     },
     {
-      label: "Inventory Value",
+      label: "Stock on Hand Value",
       value: formatTaka(totalInventoryValue),
       icon: TrendingUp,
       color: "text-emerald-400",
       bg: "bg-emerald-500/10",
+    },
+    {
+      label: "Payables (AP)",
+      value: formatTaka(apBalancePoisha),
+      icon: CreditCard,
+      color: "text-red-400",
+      bg: "bg-red-500/10",
     },
   ];
 
@@ -79,13 +94,14 @@ export default async function ProcurementPage() {
             Log government depot allocations and track landed costs
           </p>
         </div>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <PaySupplierDialog apBalancePoisha={apBalancePoisha} />
           <StockAdjustmentDialog batches={adjustmentBatches} />
         </div>
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (

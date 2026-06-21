@@ -108,14 +108,9 @@ export async function createSalesInvoice(
         ),
       );
 
-      const lastInvoice = await tx.salesInvoice.findFirst({
-        orderBy: { invoiceNo: "desc" },
-        select: { invoiceNo: true },
-      });
-      const nextSeq = lastInvoice
-        ? parseInt(lastInvoice.invoiceNo.split("-")[2] ?? "0", 10) + 1
-        : 1;
-      const invoiceNo = `INV-2026-${String(nextSeq).padStart(4, "0")}`;
+      const invoiceCount = await tx.salesInvoice.count();
+      const year = new Date().getFullYear();
+      const invoiceNo = `INV-${year}-${String(invoiceCount + 1).padStart(4, "0")}`;
 
       const invoice = await tx.salesInvoice.create({
         data: {
@@ -151,6 +146,16 @@ export async function createSalesInvoice(
             ],
           },
         },
+      });
+
+      // Immutable STOCK_OUTFLOW audit records — one per invoice line
+      await tx.stockTransaction.createMany({
+        data: lines.map((l) => ({
+          type: "STOCK_OUTFLOW" as const,
+          productId: l.productId,
+          bagsCount: l.bagsCount,
+          description: `Credit sale — Invoice ${invoiceNo} to ${retailer.shopName}`,
+        })),
       });
 
       return invoiceNo;

@@ -14,7 +14,7 @@ export function MobileBottomNav() {
       aria-label="Main navigation"
     >
       <div className="flex h-16 items-stretch">
-        {navItems.map((item) => {
+        {navItems.filter((item) => !item.desktopOnly).map((item) => {
           const Icon = item.icon;
           const isActive =
             item.href === "/"

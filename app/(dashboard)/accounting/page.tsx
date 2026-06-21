@@ -1,249 +1,186 @@
 import type { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Wallet, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import prisma from "@/lib/prisma";
+import { formatTaka } from "@/lib/currency";
+import {
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  Package,
+  Users,
+  AlertCircle,
+  Banknote,
+} from "lucide-react";
 
-export const metadata: Metadata = { title: "Accounting" };
+export const metadata: Metadata = { title: "P&L Overview — Frahman & Brothers" };
 
-const balanceSummary = [
-  {
-    label: "Total Receipts",
-    value: "৳24,80,000",
-    icon: ArrowDownLeft,
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-    sub: "This month",
-  },
-  {
-    label: "Total Payments",
-    value: "৳15,87,500",
-    icon: ArrowUpRight,
-    color: "text-red-400",
-    bg: "bg-red-500/10",
-    sub: "This month",
-  },
-  {
-    label: "Net Balance",
-    value: "৳8,92,500",
-    icon: Wallet,
-    color: "text-violet-400",
-    bg: "bg-violet-500/10",
-    sub: "Running total",
-  },
-];
+async function getAccountBalance(code: string) {
+  const result = await prisma.ledgerLine.aggregate({
+    _sum: { debitPoisha: true, creditPoisha: true },
+    where: { account: { code } },
+  });
+  return {
+    debits: result._sum.debitPoisha ?? 0,
+    credits: result._sum.creditPoisha ?? 0,
+  };
+}
 
-const ledgerEntries = [
-  {
-    date: "22 Jun 2024",
-    ref: "REC-089",
-    description: "Ministry of Health — PO-2024-034",
-    debit: "",
-    credit: "৳2,15,000",
-    balance: "৳8,92,500",
-    type: "receipt",
-  },
-  {
-    date: "21 Jun 2024",
-    ref: "PAY-041",
-    description: "Supplier — Office Supplies Purchase",
-    debit: "৳42,000",
-    credit: "",
-    balance: "৳6,77,500",
-    type: "payment",
-  },
-  {
-    date: "20 Jun 2024",
-    ref: "REC-088",
-    description: "Karim Bros Wholesale — Credit repayment",
-    debit: "",
-    credit: "৳60,000",
-    balance: "৳7,19,500",
-    type: "receipt",
-  },
-  {
-    date: "19 Jun 2024",
-    ref: "PAY-040",
-    description: "Warehouse Rent — June 2024",
-    debit: "৳35,000",
-    credit: "",
-    balance: "৳6,59,500",
-    type: "payment",
-  },
-  {
-    date: "18 Jun 2024",
-    ref: "REC-087",
-    description: "Ministry of Education — PO-2024-032",
-    debit: "",
-    credit: "৳2,40,000",
-    balance: "৳6,94,500",
-    type: "receipt",
-  },
-  {
-    date: "17 Jun 2024",
-    ref: "PAY-039",
-    description: "Staff Salaries — June 2024",
-    debit: "৳1,20,000",
-    credit: "",
-    balance: "৳4,54,500",
-    type: "payment",
-  },
-  {
-    date: "16 Jun 2024",
-    ref: "PAY-038",
-    description: "Utility Bills — Electricity & Water",
-    debit: "৳18,200",
-    credit: "",
-    balance: "৳5,74,500",
-    type: "payment",
-  },
-  {
-    date: "15 Jun 2024",
-    ref: "REC-086",
-    description: "BWDB — PO-2024-029",
-    debit: "",
-    credit: "৳1,76,000",
-    balance: "৳5,92,700",
-    type: "receipt",
-  },
-  {
-    date: "14 Jun 2024",
-    ref: "REC-085",
-    description: "Al-Amin Stores — Full repayment",
-    debit: "",
-    credit: "৳55,000",
-    balance: "৳4,16,700",
-    type: "receipt",
-  },
-  {
-    date: "12 Jun 2024",
-    ref: "PAY-037",
-    description: "Vehicle Maintenance — Delivery Van",
-    debit: "৳12,500",
-    credit: "",
-    balance: "৳3,61,700",
-    type: "payment",
-  },
-];
+export default async function AccountingPage() {
+  const [rev, cogs, loss, cash, inventory, ar, ap] = await Promise.all([
+    getAccountBalance("4100"), // Revenue — credits are earnings
+    getAccountBalance("5100"), // COGS — debits are costs
+    getAccountBalance("5200"), // Inventory Loss — debits are losses
+    getAccountBalance("1100"), // Cash & Bank — debits = inflows, credits = outflows
+    getAccountBalance("1200"), // Inventory Asset
+    getAccountBalance("1300"), // Accounts Receivable
+    getAccountBalance("2100"), // Accounts Payable
+  ]);
 
-export default function AccountingPage() {
+  // P&L
+  const grossRevenue = rev.credits;
+  const cogsTotal = cogs.debits;
+  const grossProfit = grossRevenue - cogsTotal;
+  const inventoryLoss = loss.debits;
+  const operatingProfit = grossProfit - inventoryLoss;
+  const grossMarginPct = grossRevenue > 0 ? ((grossProfit / grossRevenue) * 100).toFixed(1) : "0.0";
+  const netMarginPct =
+    grossRevenue > 0 ? ((operatingProfit / grossRevenue) * 100).toFixed(1) : "0.0";
+
+  // Balance Sheet positions
+  const cashBalance = cash.debits - cash.credits;
+  const inventoryValue = inventory.debits - inventory.credits;
+  const arBalance = ar.debits - ar.credits;
+  const apBalance = ap.credits - ap.debits;
+  const totalAssets = cashBalance + inventoryValue + arBalance;
+  const netEquity = totalAssets - apBalance;
+
+  const plRows = [
+    { label: "Gross Revenue", value: grossRevenue, type: "income" },
+    { label: "Cost of Goods Sold", value: -cogsTotal, type: "expense" },
+    { label: "Gross Profit", value: grossProfit, type: grossProfit >= 0 ? "profit" : "loss", bold: true },
+    { label: "Inventory Write-offs", value: -inventoryLoss, type: "expense" },
+    { label: "Operating Profit", value: operatingProfit, type: operatingProfit >= 0 ? "profit" : "loss", bold: true },
+  ];
+
+  const balanceRows = [
+    { label: "Cash & Bank", value: cashBalance, icon: Banknote, color: "text-blue-400", bg: "bg-blue-500/10" },
+    { label: "Inventory on Hand", value: inventoryValue, icon: Package, color: "text-amber-400", bg: "bg-amber-500/10" },
+    { label: "Accounts Receivable", value: arBalance, icon: Users, color: "text-violet-400", bg: "bg-violet-500/10" },
+    { label: "Accounts Payable (owed)", value: apBalance, icon: AlertCircle, color: "text-red-400", bg: "bg-red-500/10" },
+  ];
+
   return (
     <div className="space-y-5 md:space-y-6">
       <div className="hidden md:block">
-        <h1 className="text-xl font-semibold text-foreground">
-          Accounting Ledgers
-        </h1>
+        <h1 className="text-xl font-semibold text-foreground">P&amp;L Overview</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Financial records, receipts and payments
+          Profit &amp; loss and balance sheet derived from the general ledger
         </p>
       </div>
 
-      {/* Balance summary: 3-col grid */}
-      <div className="grid grid-cols-3 gap-3 md:gap-4">
-        {balanceSummary.map((stat) => {
-          const Icon = stat.icon;
+      {/* Summary KPIs */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+        {[
+          { label: "Gross Revenue", value: formatTaka(grossRevenue), icon: TrendingUp, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+          { label: "Gross Profit", value: formatTaka(grossProfit), icon: Wallet, color: grossProfit >= 0 ? "text-emerald-400" : "text-red-400", bg: grossProfit >= 0 ? "bg-emerald-500/10" : "bg-red-500/10" },
+          { label: "Net Equity", value: formatTaka(netEquity), icon: Wallet, color: "text-violet-400", bg: "bg-violet-500/10" },
+          { label: "Net Margin", value: `${netMarginPct}%`, icon: TrendingDown, color: parseFloat(netMarginPct) >= 0 ? "text-emerald-400" : "text-red-400", bg: parseFloat(netMarginPct) >= 0 ? "bg-emerald-500/10" : "bg-red-500/10" },
+        ].map((kpi) => {
+          const Icon = kpi.icon;
           return (
-            <Card key={stat.label} className="border-border bg-card">
+            <Card key={kpi.label} className="border-border bg-card">
               <CardContent className="p-4">
-                <div
-                  className={cn(
-                    "mb-3 flex h-9 w-9 items-center justify-center rounded-lg",
-                    stat.bg
-                  )}
-                >
-                  <Icon className={cn("h-4 w-4", stat.color)} />
+                <div className={cn("mb-3 flex h-9 w-9 items-center justify-center rounded-lg", kpi.bg)}>
+                  <Icon className={cn("h-4 w-4", kpi.color)} />
                 </div>
-                <p className="text-base font-bold tabular-nums leading-tight text-foreground md:text-lg">
-                  {stat.value}
-                </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {stat.label}
-                </p>
-                <p className="mt-0.5 text-[10px] text-muted-foreground/50">
-                  {stat.sub}
-                </p>
+                <p className="text-lg font-bold tabular-nums text-foreground md:text-xl">{kpi.value}</p>
+                <p className="text-xs text-muted-foreground">{kpi.label}</p>
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {/* General ledger table */}
-      <Card className="border-border bg-card">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">
-            General Ledger — June 2024
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px] text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/30">
-                  <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground">
-                    Date
-                  </th>
-                  <th className="hidden px-3 py-3 text-left text-xs font-medium text-muted-foreground sm:table-cell">
-                    Ref
-                  </th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground">
-                    Description
-                  </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-muted-foreground">
-                    Debit
-                  </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-muted-foreground">
-                    Credit
-                  </th>
-                  <th className="hidden px-5 py-3 text-right text-xs font-medium text-muted-foreground sm:table-cell">
-                    Balance
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {ledgerEntries.map((entry, i) => (
-                  <tr
-                    key={i}
-                    className="transition-colors hover:bg-muted/20"
-                  >
-                    <td className="whitespace-nowrap px-5 py-3.5 text-xs text-muted-foreground">
-                      {entry.date}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {/* P&L Statement */}
+        <Card className="border-border bg-card">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold">
+              Profit &amp; Loss
+              <span className="ml-2 font-mono text-xs font-normal text-muted-foreground">
+                Gross {grossMarginPct}% · Net {netMarginPct}%
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <table className="w-full text-sm">
+              <tbody className="divide-y divide-border/50">
+                {plRows.map((row) => (
+                  <tr key={row.label} className={row.bold ? "bg-muted/10" : ""}>
+                    <td className={cn("px-5 py-3", row.bold && "font-semibold text-foreground", !row.bold && "text-muted-foreground")}>
+                      {row.label}
                     </td>
-                    <td className="hidden px-3 py-3.5 font-mono text-xs text-muted-foreground/60 sm:table-cell">
-                      {entry.ref}
-                    </td>
-                    <td className="max-w-[160px] px-3 py-3.5 md:max-w-none">
-                      <span className="block truncate text-sm text-foreground">
-                        {entry.description}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3.5 text-right tabular-nums">
-                      {entry.debit ? (
-                        <span className="text-sm font-medium text-red-400">
-                          {entry.debit}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground/25">—</span>
+                    <td
+                      className={cn(
+                        "px-5 py-3 text-right tabular-nums",
+                        row.bold && "font-bold",
+                        row.type === "income" && "text-emerald-400",
+                        row.type === "expense" && "text-red-400",
+                        row.type === "profit" && "text-emerald-400",
+                        row.type === "loss" && "text-red-400",
+                        !["income","expense","profit","loss"].includes(row.type) && "text-foreground",
                       )}
-                    </td>
-                    <td className="px-3 py-3.5 text-right tabular-nums">
-                      {entry.credit ? (
-                        <span className="text-sm font-medium text-emerald-400">
-                          {entry.credit}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground/25">—</span>
-                      )}
-                    </td>
-                    <td className="hidden px-5 py-3.5 text-right tabular-nums text-sm font-semibold text-foreground sm:table-cell">
-                      {entry.balance}
+                    >
+                      {row.value < 0
+                        ? `(${formatTaka(Math.abs(row.value))})`
+                        : formatTaka(row.value)}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        {/* Balance Sheet Positions */}
+        <Card className="border-border bg-card">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold">
+              Balance Sheet
+              <span className="ml-2 font-mono text-xs font-normal text-muted-foreground">
+                Net equity {formatTaka(netEquity)}
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 p-4">
+            {balanceRows.map((row) => {
+              const Icon = row.icon;
+              return (
+                <div key={row.label} className="flex items-center gap-3">
+                  <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", row.bg)}>
+                    <Icon className={cn("h-3.5 w-3.5", row.color)} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">{row.label}</p>
+                  </div>
+                  <span className="tabular-nums text-sm font-semibold text-foreground">
+                    {formatTaka(row.value)}
+                  </span>
+                </div>
+              );
+            })}
+            <div className="flex items-center justify-between border-t border-border pt-3">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Net Equity
+              </span>
+              <span className={cn("tabular-nums font-bold", netEquity >= 0 ? "text-emerald-400" : "text-red-400")}>
+                {formatTaka(netEquity)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

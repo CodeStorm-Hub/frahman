@@ -32,9 +32,11 @@ async function main() {
     { code: "1200", name: "Inventory Asset",              category: "ASSET"     as const },
     { code: "1300", name: "Accounts Receivable",          category: "ASSET"     as const },
     { code: "2100", name: "Accounts Payable",             category: "LIABILITY" as const },
+    { code: "3100", name: "Owner's Capital",              category: "EQUITY"    as const },
     { code: "4100", name: "Wholesale Fertilizer Revenue", category: "REVENUE"   as const },
     { code: "5100", name: "Cost of Goods Sold",           category: "EXPENSE"   as const },
     { code: "5200", name: "Inventory Loss",               category: "EXPENSE"   as const },
+    { code: "5300", name: "Transport & Logistics",        category: "EXPENSE"   as const },
   ];
 
   for (const account of accounts) {

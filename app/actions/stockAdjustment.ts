@@ -42,7 +42,8 @@ export async function logStockAdjustment(
       const writeoffPoisha = bagsCount * batch.landedCostPerBagPoisha;
 
       const adjCount = await tx.stockTransaction.count({ where: { type: "STOCK_ADJUSTMENT" } });
-      const referenceNo = `ADJ-2026-${String(adjCount + 1).padStart(4, "0")}`;
+      const year = new Date().getFullYear();
+      const referenceNo = `ADJ-${year}-${String(adjCount + 1).padStart(4, "0")}`;
 
       const entry = await tx.journalEntry.create({
         data: {

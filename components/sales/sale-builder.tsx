@@ -1,7 +1,6 @@
 "use client";
 
-import { useActionState, useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useActionState, useState, useCallback, useRef } from "react";
 import {
   Plus,
   Trash2,
@@ -10,10 +9,12 @@ import {
   AlertCircle,
   Loader2,
   ShieldAlert,
+  FileText,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Link from "next/link";
 import {
   Select,
   SelectContent,
@@ -24,6 +25,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { formatTaka } from "@/lib/currency";
 import { createSalesInvoice, type SalesFormState } from "@/app/actions/sales";
 
 // ---------------------------------------------------------------------------
@@ -58,12 +60,6 @@ type LineItem = {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatTaka(poisha: number) {
-  return "৳" + (poisha / 100).toLocaleString("en-BD", { minimumFractionDigits: 0 });
-}
-
-let nextKey = 1;
-
 const initialState: SalesFormState = { status: "idle", message: "" };
 
 // ---------------------------------------------------------------------------
@@ -79,22 +75,14 @@ export function SaleBuilder({
   retailers: RetailerOption[];
   preselectedRetailerId?: string;
 }) {
-  const router = useRouter();
   const [state, formAction, isPending] = useActionState(createSalesInvoice, initialState);
+  const nextKeyRef = useRef(0);
 
   const [retailerId, setRetailerId] = useState(preselectedRetailerId ?? "");
   const [lines, setLines] = useState<LineItem[]>([
-    { key: nextKey++, productId: "", bagsCount: "", pricePerBagPoisha: 0 },
+    { key: nextKeyRef.current++, productId: "", bagsCount: "", pricePerBagPoisha: 0 },
   ]);
   const [override, setOverride] = useState(false);
-
-  // Reset on success
-  useEffect(() => {
-    if (state.status === "success") {
-      const t = setTimeout(() => router.push("/retailers"), 2000);
-      return () => clearTimeout(t);
-    }
-  }, [state.status, state.invoiceNo, router]);
 
   // Re-derive selected retailer from state
   const selectedRetailer = retailers.find((r) => r.id === retailerId) ?? null;
@@ -122,7 +110,7 @@ export function SaleBuilder({
   const addLine = () =>
     setLines((prev) => [
       ...prev,
-      { key: nextKey++, productId: "", bagsCount: "", pricePerBagPoisha: 0 },
+      { key: nextKeyRef.current++, productId: "", bagsCount: "", pricePerBagPoisha: 0 },
     ]);
 
   const removeLine = (key: number) =>
@@ -172,20 +160,46 @@ export function SaleBuilder({
       <input type="hidden" name="override" value={override ? "true" : "false"} />
 
       {/* Status banner */}
-      {state.status !== "idle" && (
-        <div
-          className={cn(
-            "flex items-start gap-3 rounded-lg border px-4 py-3 text-sm",
-            state.status === "success"
-              ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-400"
-              : "border-red-500/25 bg-red-500/10 text-red-400",
-          )}
-        >
-          {state.status === "success" ? (
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-          ) : (
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          )}
+      {state.status === "success" && state.invoiceNo && (
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-5">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+            <div className="flex-1">
+              <p className="font-semibold text-emerald-400">Invoice Created Successfully</p>
+              <div className="mt-1.5 flex items-center gap-2">
+                <FileText className="h-4 w-4 text-emerald-400/70" />
+                <span className="font-mono text-lg font-bold tracking-wide text-emerald-300">
+                  {state.invoiceNo}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-emerald-400/70">{state.message}</p>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-emerald-500/20 pt-4">
+            <Link
+              href="/retailers"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10")}
+            >
+              Back to Retailers
+            </Link>
+            <Link
+              href="/sales"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10")}
+            >
+              Invoice History
+            </Link>
+            <Link
+              href="/ledgers"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10")}
+            >
+              View Ledger
+            </Link>
+          </div>
+        </div>
+      )}
+      {state.status === "error" && (
+        <div className="flex items-start gap-3 rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{state.message}</span>
         </div>
       )}

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
+import { formatTaka as _formatTaka } from "@/lib/currency";
 
 export const metadata: Metadata = { title: "General Ledger — Frahman & Brothers" };
 
 function formatTaka(poisha: number): string {
   if (poisha === 0) return "";
-  const taka = poisha / 100;
-  return "৳" + taka.toLocaleString("en-BD", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return _formatTaka(poisha);
 }
 
 function formatDate(date: Date): string {

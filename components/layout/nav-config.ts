@@ -2,9 +2,11 @@ import {
   LayoutDashboard,
   Package,
   Store,
-  BookOpen,
   ShoppingCart,
   ScrollText,
+  Receipt,
+  BarChart3,
+  FlaskConical,
   type LucideIcon,
 } from "lucide-react";
 
@@ -14,6 +16,8 @@ export type NavItem = {
   icon: LucideIcon;
   shortLabel: string;
   description: string;
+  /** When true, item appears in desktop sidebar only, not the mobile bottom tab bar */
+  desktopOnly?: boolean;
 };
 
 export const navItems: NavItem[] = [
@@ -46,11 +50,27 @@ export const navItems: NavItem[] = [
     description: "Create Invoice",
   },
   {
-    label: "Accounting",
+    label: "Invoices",
+    href: "/sales",
+    icon: Receipt,
+    shortLabel: "Invoices",
+    description: "Sales History",
+  },
+  {
+    label: "Products",
+    href: "/products",
+    icon: FlaskConical,
+    shortLabel: "Products",
+    description: "Fertilizer Catalogue",
+    desktopOnly: true,
+  },
+  {
+    label: "P&L Overview",
     href: "/accounting",
-    icon: BookOpen,
-    shortLabel: "Acctg",
-    description: "Accounting Ledgers",
+    icon: BarChart3,
+    shortLabel: "P&L",
+    description: "Profit & Loss",
+    desktopOnly: true,
   },
   {
     label: "Ledger",
@@ -58,5 +78,6 @@ export const navItems: NavItem[] = [
     icon: ScrollText,
     shortLabel: "Ledger",
     description: "General Ledger",
+    desktopOnly: true,
   },
 ];

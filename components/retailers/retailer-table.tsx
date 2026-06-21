@@ -6,6 +6,9 @@ import { Search, ShoppingCart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatTaka } from "@/lib/currency";
+import { RecordPaymentDialog } from "./record-payment-dialog";
+import { EditRetailerDialog } from "./edit-retailer-dialog";
 
 export type RetailerRow = {
   id: string;
@@ -17,10 +20,6 @@ export type RetailerRow = {
   currentBalancePoisha: number;
   isAuthorized: boolean;
 };
-
-function formatTaka(poisha: number) {
-  return "৳" + (poisha / 100).toLocaleString("en-BD", { minimumFractionDigits: 0 });
-}
 
 function utilizationPct(balance: number, limit: number) {
   if (limit === 0) return 0;
@@ -110,7 +109,9 @@ export function RetailerTable({ retailers }: { retailers: RetailerRow[] }) {
                 return (
                   <tr key={r.id} className="transition-colors hover:bg-muted/20">
                     <td className="px-5 py-3.5">
-                      <p className="font-medium text-foreground">{r.shopName}</p>
+                      <Link href={`/retailers/${r.id}`} className="font-medium text-foreground hover:underline underline-offset-2">
+                        {r.shopName}
+                      </Link>
                       <p className="text-xs text-muted-foreground">{r.proprietorName}</p>
                     </td>
                     <td className="hidden px-3 py-3.5 font-mono text-xs text-muted-foreground sm:table-cell">
@@ -151,14 +152,24 @@ export function RetailerTable({ retailers }: { retailers: RetailerRow[] }) {
                         {statusLabel}
                       </span>
                     </td>
-                    <td className="px-3 py-3.5 text-right">
-                      <Link
-                        href={`/sales/new?retailerId=${r.id}`}
-                        className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "h-7 px-2 text-xs")}
-                      >
-                        <ShoppingCart className="mr-1 h-3 w-3" />
-                        New Sale
-                      </Link>
+                    <td className="px-3 py-3.5">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <EditRetailerDialog retailer={r} />
+                        {r.currentBalancePoisha > 0 && (
+                          <RecordPaymentDialog
+                            retailerId={r.id}
+                            shopName={r.shopName}
+                            currentBalancePoisha={r.currentBalancePoisha}
+                          />
+                        )}
+                        <Link
+                          href={`/sales/new?retailerId=${r.id}`}
+                          className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "h-7 px-2 text-xs")}
+                        >
+                          <ShoppingCart className="mr-1 h-3 w-3" />
+                          New Sale
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 );

@@ -138,3 +138,15 @@
     display: none;
   }
 }
+
+@media print {
+  /* Hide navigation shell */
+  aside, nav, header, footer, .print\:hidden { display: none !important; }
+  /* Remove dark background — print on white */
+  html, body { background: white !important; color: black !important; }
+  /* Let invoice card fill the page */
+  main { margin: 0 !important; padding: 0 !important; }
+  /* Ensure text is readable */
+  * { color: black !important; border-color: #ccc !important; }
+  a { text-decoration: none !important; }
+}

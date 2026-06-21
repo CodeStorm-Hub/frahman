@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import prisma from "@/lib/prisma";
+import { formatTaka } from "@/lib/currency";
 import {
   Package,
   Users,
@@ -12,11 +13,6 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = { title: "Dashboard" };
-
-function formatTaka(poisha: number): string {
-  const taka = poisha / 100;
-  return "৳" + taka.toLocaleString("en-BD", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString("en-BD", { day: "2-digit", month: "short", year: "numeric" });

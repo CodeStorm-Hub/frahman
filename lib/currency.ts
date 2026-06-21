@@ -15,3 +15,9 @@ export function toPoisha(taka: number): number {
 export function toTaka(poisha: number): number {
   return poisha / 100;
 }
+
+/** Format a Poisha integer as a BDT currency string, e.g. ৳1,35,000 */
+export function formatTaka(poisha: number): string {
+  const taka = (poisha || 0) / 100;
+  return "৳" + taka.toLocaleString("en-BD", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}

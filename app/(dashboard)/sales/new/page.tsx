@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import prisma from "@/lib/prisma";
 import { SaleBuilder } from "@/components/sales/sale-builder";
+import { BackButton } from "@/components/ui/back-button";
 
 export const metadata: Metadata = { title: "New Sale — Frahman & Brothers" };
 
@@ -50,13 +47,7 @@ export default async function NewSalePage({
     <div className="space-y-5 md:space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link
-          href="/retailers"
-          className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "h-8 gap-1.5 px-2")}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span className="hidden sm:inline">Retailers</span>
-        </Link>
+        <BackButton fallbackHref="/retailers" />
         <div>
           <h1 className="text-xl font-semibold text-foreground">New Credit Sale</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
