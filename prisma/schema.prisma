@@ -1,0 +1,201 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum TransactionType {
+  STOCK_INFLOW
+  STOCK_OUTFLOW
+  STOCK_ADJUSTMENT
+}
+
+enum AccountCategory {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+// ---------------------------------------------------------------------------
+// Inventory
+// ---------------------------------------------------------------------------
+
+/// Core product catalogue. Only four SKUs in production: Urea, TSP, MOP, DAP.
+model Product {
+  id                 String             @id @default(uuid())
+  name               String             @unique
+  chemicalSpec       String
+  /// Government-regulated price per 50 kg bag, stored in Poisha (1 BDT = 100 Poisha)
+  officialRatePerBag Int
+
+  batches           InventoryBatch[]
+  stockTransactions StockTransaction[]
+  salesLines        SalesInvoiceLine[]
+}
+
+/// One government allocation delivery from BADC or BCIC depot.
+model InventoryBatch {
+  id  String @id @default(uuid())
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  /// Official tracking reference from the government depot challan document
+  governmentChallanNo String
+
+  initialBagsCount Int
+  currentBagsCount Int
+
+  /// Base price at the regulated government rate, in Poisha
+  baseCostPerBagPoisha Int
+  /// Composite of transport truck hire + coolie loading labour, in Poisha
+  logisticsCostPoisha  Int
+  /// Derived: baseCostPerBagPoisha + (logisticsCostPoisha / initialBagsCount), in Poisha
+  landedCostPerBagPoisha Int
+
+  receivedDate DateTime @default(now())
+
+  stockTransactions StockTransaction[]
+}
+
+/// Immutable record of every bag movement in or out of the warehouse.
+model StockTransaction {
+  id   String          @id @default(uuid())
+  type TransactionType
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  /// Null for STOCK_ADJUSTMENT entries not tied to a specific batch
+  batchId String?
+  batch   InventoryBatch? @relation(fields: [batchId], references: [id])
+
+  bagsCount Int
+
+  /// Free-text reason, required for STOCK_ADJUSTMENT (e.g. "Water-damaged bags")
+  description String?
+
+  /// Each transaction that affects ledger accounts links to exactly one JournalEntry
+  journalEntryId String?      @unique
+  journalEntry   JournalEntry? @relation(fields: [journalEntryId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Retailers
+// ---------------------------------------------------------------------------
+
+/// Authorised B2B dealer who buys on credit from the warehouse.
+model Retailer {
+  id             String @id @default(uuid())
+  shopName       String
+  proprietorName String
+  phone          String @unique
+  address        String
+  isAuthorized   Boolean @default(true)
+
+  /// Maximum cumulative outstanding allowed before new sales are blocked, in Poisha
+  creditLimitPoisha    Int
+  /// Running net balance currently owed by this retailer, in Poisha
+  currentBalancePoisha Int
+
+  invoices SalesInvoice[]
+}
+
+// ---------------------------------------------------------------------------
+// Double-entry accounting
+// ---------------------------------------------------------------------------
+
+/// Chart of accounts entry. Each Account maps to one debit/credit side of the ledger.
+model Account {
+  id       String          @id @default(uuid())
+  /// Structured account code, e.g. "1100" = Cash, "1200" = Inventory Asset, "1300" = Accounts Receivable
+  code     String          @unique
+  name     String
+  category AccountCategory
+
+  ledgerLines LedgerLine[]
+}
+
+/// Header record for a balanced accounting entry.
+/// Every JournalEntry must have LedgerLines whose debitPoisha totals equal creditPoisha totals.
+model JournalEntry {
+  id          String @id @default(uuid())
+  /// Human-readable reference: matches InvoiceNo or government challan string
+  referenceNo String
+  description String
+  entryDate   DateTime @default(now())
+
+  lines LedgerLine[]
+
+  /// One-to-one: a stock movement may auto-generate exactly one journal entry
+  stockTransaction StockTransaction?
+
+  /// One-to-one: a sales invoice generates exactly one journal entry
+  salesInvoiceId String?      @unique
+  salesInvoice   SalesInvoice? @relation(fields: [salesInvoiceId], references: [id])
+}
+
+/// Single debit or credit line within a JournalEntry.
+/// Exactly one of debitPoisha or creditPoisha must be non-zero per row.
+model LedgerLine {
+  id String @id @default(uuid())
+
+  journalEntryId String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id])
+
+  /// Amount debiting this account, in Poisha. Zero when this line is a credit.
+  debitPoisha  Int @default(0)
+  /// Amount crediting this account, in Poisha. Zero when this line is a debit.
+  creditPoisha Int @default(0)
+}
+
+// ---------------------------------------------------------------------------
+// Sales
+// ---------------------------------------------------------------------------
+
+/// A credit sale issued to one retailer covering one or more product lines.
+model SalesInvoice {
+  id          String @id @default(uuid())
+  /// Formatted invoice number, e.g. INV-2026-0001
+  invoiceNo   String @unique
+
+  retailerId String
+  retailer   Retailer @relation(fields: [retailerId], references: [id])
+
+  invoiceDate       DateTime @default(now())
+  /// Sum of all SalesInvoiceLine totals, in Poisha
+  totalAmountPoisha Int
+  isPaid            Boolean  @default(false)
+
+  lines        SalesInvoiceLine[]
+  journalEntry JournalEntry?
+}
+
+/// One product line within a SalesInvoice.
+model SalesInvoiceLine {
+  id String @id @default(uuid())
+
+  invoiceId String
+  invoice   SalesInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  bagsCount         Int
+  /// Agreed sale price per bag for this line, in Poisha
+  pricePerBagPoisha Int
+}
