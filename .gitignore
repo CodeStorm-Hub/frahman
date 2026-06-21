@@ -21,3 +21,4 @@ generated/
 
 .vercel
 /.playwright-mcp
+/playwright-image

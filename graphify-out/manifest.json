@@ -1,0 +1,337 @@
+{
+  "J:\\GitHub\\frahman\\.claude\\settings.json": {
+    "mtime": 1782077995.5974038,
+    "ast_hash": "7bf81dca0376bde3a32244b82bc7cbc0",
+    "semantic_hash": "7bf81dca0376bde3a32244b82bc7cbc0"
+  },
+  "J:\\GitHub\\frahman\\.claude\\settings.local.json": {
+    "mtime": 1782072403.01286,
+    "ast_hash": "137b6fc40aa545e32b550187980eeb0e",
+    "semantic_hash": "137b6fc40aa545e32b550187980eeb0e"
+  },
+  "J:\\GitHub\\frahman\\.remember\\tmp\\last-ndc.ts": {
+    "mtime": 1782078169.5384119,
+    "ast_hash": "c28e0cae6e97d2e2a5579a62d0b682dc",
+    "semantic_hash": "c28e0cae6e97d2e2a5579a62d0b682dc"
+  },
+  "J:\\GitHub\\frahman\\.remember\\tmp\\last-save.json": {
+    "mtime": 1782078295.619498,
+    "ast_hash": "5e014193f9922180990d2511c999c2e4",
+    "semantic_hash": "5e014193f9922180990d2511c999c2e4"
+  },
+  "J:\\GitHub\\frahman\\app\\(dashboard)\\accounting\\page.tsx": {
+    "mtime": 1782074689.1172543,
+    "ast_hash": "1ad59185ed4c5a11330cf67df24ca876",
+    "semantic_hash": "1ad59185ed4c5a11330cf67df24ca876"
+  },
+  "J:\\GitHub\\frahman\\app\\(dashboard)\\layout.tsx": {
+    "mtime": 1782074577.6797185,
+    "ast_hash": "40d3080c855ba04e26dd42f41af37253",
+    "semantic_hash": "40d3080c855ba04e26dd42f41af37253"
+  },
+  "J:\\GitHub\\frahman\\app\\(dashboard)\\ledgers\\page.tsx": {
+    "mtime": 1782078018.4255831,
+    "ast_hash": "4751a7a4db0ed9f02a8189a56ae2df5d",
+    "semantic_hash": "4751a7a4db0ed9f02a8189a56ae2df5d"
+  },
+  "J:\\GitHub\\frahman\\app\\(dashboard)\\page.tsx": {
+    "mtime": 1782077990.2915046,
+    "ast_hash": "7fa50ed64d7b2c7b8c90039cbd8e4336",
+    "semantic_hash": "7fa50ed64d7b2c7b8c90039cbd8e4336"
+  },
+  "J:\\GitHub\\frahman\\app\\(dashboard)\\procurement\\page.tsx": {
+    "mtime": 1782078039.3056114,
+    "ast_hash": "cdac4c8c5079f0f9c483f034e9a2ad76",
+    "semantic_hash": "cdac4c8c5079f0f9c483f034e9a2ad76"
+  },
+  "J:\\GitHub\\frahman\\app\\(dashboard)\\retailer-matrix\\page.tsx": {
+    "mtime": 1782074661.7640443,
+    "ast_hash": "45f85ac4cae2ae87443ea5723b0a50fa",
+    "semantic_hash": "45f85ac4cae2ae87443ea5723b0a50fa"
+  },
+  "J:\\GitHub\\frahman\\app\\(dashboard)\\retailers\\page.tsx": {
+    "mtime": 1782076299.114389,
+    "ast_hash": "94155265357263bc843c0025db48eafe",
+    "semantic_hash": "94155265357263bc843c0025db48eafe"
+  },
+  "J:\\GitHub\\frahman\\app\\(dashboard)\\sales\\new\\page.tsx": {
+    "mtime": 1782076459.0591693,
+    "ast_hash": "10aac3b01ed8f87ac4cc988e1f43a2c1",
+    "semantic_hash": "10aac3b01ed8f87ac4cc988e1f43a2c1"
+  },
+  "J:\\GitHub\\frahman\\app\\actions\\procurement.ts": {
+    "mtime": 1782075758.1838226,
+    "ast_hash": "eb803afeca38b89925edc3e1df53b7b8",
+    "semantic_hash": "eb803afeca38b89925edc3e1df53b7b8"
+  },
+  "J:\\GitHub\\frahman\\app\\actions\\retailers.ts": {
+    "mtime": 1782076209.9995234,
+    "ast_hash": "475f8afe3f8b8b0a1364b037f50cd40d",
+    "semantic_hash": "475f8afe3f8b8b0a1364b037f50cd40d"
+  },
+  "J:\\GitHub\\frahman\\app\\actions\\sales.ts": {
+    "mtime": 1782076232.4248018,
+    "ast_hash": "fc273341506dd028dff6a9ba622a3ec1",
+    "semantic_hash": "fc273341506dd028dff6a9ba622a3ec1"
+  },
+  "J:\\GitHub\\frahman\\app\\actions\\stockAdjustment.ts": {
+    "mtime": 1782077932.5091157,
+    "ast_hash": "f331e11ce485978894466d328cb14498",
+    "semantic_hash": "f331e11ce485978894466d328cb14498"
+  },
+  "J:\\GitHub\\frahman\\app\\layout.tsx": {
+    "mtime": 1782074541.0391836,
+    "ast_hash": "76d129b9654c2b457ccda5addf1418be",
+    "semantic_hash": "76d129b9654c2b457ccda5addf1418be"
+  },
+  "J:\\GitHub\\frahman\\components.json": {
+    "mtime": 1782073852.6131485,
+    "ast_hash": "63b2c4fcf776fec9dbc76e94ea0d70c6",
+    "semantic_hash": "63b2c4fcf776fec9dbc76e94ea0d70c6"
+  },
+  "J:\\GitHub\\frahman\\components\\layout\\app-sidebar.tsx": {
+    "mtime": 1782074559.0059562,
+    "ast_hash": "1e41e3e62544a6012ee099da3f73816d",
+    "semantic_hash": "1e41e3e62544a6012ee099da3f73816d"
+  },
+  "J:\\GitHub\\frahman\\components\\layout\\mobile-bottom-nav.tsx": {
+    "mtime": 1782074566.0414705,
+    "ast_hash": "c466270ccb09b0bd435f55c94df6f4a1",
+    "semantic_hash": "c466270ccb09b0bd435f55c94df6f4a1"
+  },
+  "J:\\GitHub\\frahman\\components\\layout\\nav-config.ts": {
+    "mtime": 1782077961.454566,
+    "ast_hash": "b5ea93d35d460db1a51de30aac11cb4f",
+    "semantic_hash": "b5ea93d35d460db1a51de30aac11cb4f"
+  },
+  "J:\\GitHub\\frahman\\components\\layout\\top-header.tsx": {
+    "mtime": 1782074567.788653,
+    "ast_hash": "612fe14e4b803139f424ff66d9474b43",
+    "semantic_hash": "612fe14e4b803139f424ff66d9474b43"
+  },
+  "J:\\GitHub\\frahman\\components\\procurement\\intake-form.tsx": {
+    "mtime": 1782075942.9561808,
+    "ast_hash": "2031f7bb240178da4b336fcd31972cb6",
+    "semantic_hash": "2031f7bb240178da4b336fcd31972cb6"
+  },
+  "J:\\GitHub\\frahman\\components\\procurement\\stock-adjustment-dialog.tsx": {
+    "mtime": 1782078071.2688494,
+    "ast_hash": "9d436c3ce8647f50becd2899db835d4e",
+    "semantic_hash": "9d436c3ce8647f50becd2899db835d4e"
+  },
+  "J:\\GitHub\\frahman\\components\\retailers\\add-retailer-dialog.tsx": {
+    "mtime": 1782076503.3952363,
+    "ast_hash": "a3ae66ea43d98b27a50d1c5b5a839e57",
+    "semantic_hash": "a3ae66ea43d98b27a50d1c5b5a839e57"
+  },
+  "J:\\GitHub\\frahman\\components\\retailers\\retailer-table.tsx": {
+    "mtime": 1782076447.7251308,
+    "ast_hash": "8ce1977865d7af11386c46397e56604f",
+    "semantic_hash": "8ce1977865d7af11386c46397e56604f"
+  },
+  "J:\\GitHub\\frahman\\components\\sales\\sale-builder.tsx": {
+    "mtime": 1782076357.0857327,
+    "ast_hash": "0722b1345f7df5f614e3e52f196aea1a",
+    "semantic_hash": "0722b1345f7df5f614e3e52f196aea1a"
+  },
+  "J:\\GitHub\\frahman\\components\\ui\\badge.tsx": {
+    "mtime": 1782074513.8349297,
+    "ast_hash": "e4ec840217040d5630ee6ed7213a1d72",
+    "semantic_hash": "e4ec840217040d5630ee6ed7213a1d72"
+  },
+  "J:\\GitHub\\frahman\\components\\ui\\button.tsx": {
+    "mtime": 1782073852.5865417,
+    "ast_hash": "e04ce5251d6b0dd04020988126c905e9",
+    "semantic_hash": "e04ce5251d6b0dd04020988126c905e9"
+  },
+  "J:\\GitHub\\frahman\\components\\ui\\card.tsx": {
+    "mtime": 1782074513.7438834,
+    "ast_hash": "bd5f88ad2d983dd6c4561d63824c80ba",
+    "semantic_hash": "bd5f88ad2d983dd6c4561d63824c80ba"
+  },
+  "J:\\GitHub\\frahman\\components\\ui\\checkbox.tsx": {
+    "mtime": 1782076198.7995076,
+    "ast_hash": "b2348d074d43a3597b5622982f1978b6",
+    "semantic_hash": "b2348d074d43a3597b5622982f1978b6"
+  },
+  "J:\\GitHub\\frahman\\components\\ui\\dialog.tsx": {
+    "mtime": 1782076198.989722,
+    "ast_hash": "d9618a63d34473ec512321cc12d43692",
+    "semantic_hash": "d9618a63d34473ec512321cc12d43692"
+  },
+  "J:\\GitHub\\frahman\\components\\ui\\input.tsx": {
+    "mtime": 1782075734.6336908,
+    "ast_hash": "0607b02d99a2e92f9509223f36ccc6ec",
+    "semantic_hash": "0607b02d99a2e92f9509223f36ccc6ec"
+  },
+  "J:\\GitHub\\frahman\\components\\ui\\label.tsx": {
+    "mtime": 1782075734.7354727,
+    "ast_hash": "a70440da86bfc6a07f15197cca48cb08",
+    "semantic_hash": "a70440da86bfc6a07f15197cca48cb08"
+  },
+  "J:\\GitHub\\frahman\\components\\ui\\scroll-area.tsx": {
+    "mtime": 1782074513.9077716,
+    "ast_hash": "ac8fc719d0fd13c77c933474827337da",
+    "semantic_hash": "ac8fc719d0fd13c77c933474827337da"
+  },
+  "J:\\GitHub\\frahman\\components\\ui\\select.tsx": {
+    "mtime": 1782075734.86274,
+    "ast_hash": "ab95f478cb74d1906b07425c15b124cc",
+    "semantic_hash": "ab95f478cb74d1906b07425c15b124cc"
+  },
+  "J:\\GitHub\\frahman\\components\\ui\\separator.tsx": {
+    "mtime": 1782074513.9880035,
+    "ast_hash": "3de2dca3e47ab29c4b1f632671545628",
+    "semantic_hash": "3de2dca3e47ab29c4b1f632671545628"
+  },
+  "J:\\GitHub\\frahman\\eslint.config.mjs": {
+    "mtime": 1782073852.639854,
+    "ast_hash": "a28251ba62e169d583f4f218cc6ba5ef",
+    "semantic_hash": "a28251ba62e169d583f4f218cc6ba5ef"
+  },
+  "J:\\GitHub\\frahman\\lib\\currency.ts": {
+    "mtime": 1782075412.6879761,
+    "ast_hash": "96e6ec159cc9a09459f0e611b2dcc932",
+    "semantic_hash": "96e6ec159cc9a09459f0e611b2dcc932"
+  },
+  "J:\\GitHub\\frahman\\lib\\prisma.ts": {
+    "mtime": 1782073852.6933184,
+    "ast_hash": "c822b1e7f56e75483b1d57ce684ce676",
+    "semantic_hash": "c822b1e7f56e75483b1d57ce684ce676"
+  },
+  "J:\\GitHub\\frahman\\lib\\utils.ts": {
+    "mtime": 1782073852.6933184,
+    "ast_hash": "5a6fd53fdcf2be529e9cc0b718fde352",
+    "semantic_hash": "5a6fd53fdcf2be529e9cc0b718fde352"
+  },
+  "J:\\GitHub\\frahman\\next-env.d.ts": {
+    "mtime": 1782073852.7064662,
+    "ast_hash": "29f60a376e12bf72b67d4994fcc84214",
+    "semantic_hash": "29f60a376e12bf72b67d4994fcc84214"
+  },
+  "J:\\GitHub\\frahman\\next.config.ts": {
+    "mtime": 1782076637.2797475,
+    "ast_hash": "daad32b4de0b92afe04301ebf0a6cc76",
+    "semantic_hash": "daad32b4de0b92afe04301ebf0a6cc76"
+  },
+  "J:\\GitHub\\frahman\\package.json": {
+    "mtime": 1782076638.578229,
+    "ast_hash": "b74b315c2b076cd8216c220edcd479ba",
+    "semantic_hash": "b74b315c2b076cd8216c220edcd479ba"
+  },
+  "J:\\GitHub\\frahman\\postcss.config.mjs": {
+    "mtime": 1782073852.7999017,
+    "ast_hash": "239f3ebf717465dc636818a1a619398d",
+    "semantic_hash": "239f3ebf717465dc636818a1a619398d"
+  },
+  "J:\\GitHub\\frahman\\prisma.compute.ts": {
+    "mtime": 1782073852.8531835,
+    "ast_hash": "4e47605ac480f30e518ba545ed167a65",
+    "semantic_hash": "4e47605ac480f30e518ba545ed167a65"
+  },
+  "J:\\GitHub\\frahman\\prisma.config.ts": {
+    "mtime": 1782073852.8725784,
+    "ast_hash": "e56b1d086a8b4bf5b01d6228fe7a2468",
+    "semantic_hash": "e56b1d086a8b4bf5b01d6228fe7a2468"
+  },
+  "J:\\GitHub\\frahman\\prisma\\migrations\\20260621202537_init\\migration.sql": {
+    "mtime": 1782073852.8320112,
+    "ast_hash": "0d1c2347749fd8ae4e0f70f593475eae",
+    "semantic_hash": "0d1c2347749fd8ae4e0f70f593475eae"
+  },
+  "J:\\GitHub\\frahman\\prisma\\migrations\\20260621205127_production_schema\\migration.sql": {
+    "mtime": 1782075087.601977,
+    "ast_hash": "cf3708e3b0f975a3728943717d05d159",
+    "semantic_hash": "cf3708e3b0f975a3728943717d05d159"
+  },
+  "J:\\GitHub\\frahman\\prisma\\migrations\\20260622000000_add_product_name_unique\\migration.sql": {
+    "mtime": 1782075558.210425,
+    "ast_hash": "9b4e946d88fe506a2d42caf796d8bdf1",
+    "semantic_hash": "9b4e946d88fe506a2d42caf796d8bdf1"
+  },
+  "J:\\GitHub\\frahman\\prisma\\seed.ts": {
+    "mtime": 1782075409.7206554,
+    "ast_hash": "3982ab218dafb73aa6e08f38c8c66c10",
+    "semantic_hash": "3982ab218dafb73aa6e08f38c8c66c10"
+  },
+  "J:\\GitHub\\frahman\\tsconfig.json": {
+    "mtime": 1782073852.9065833,
+    "ast_hash": "4346abdd241d988ad64667784bd06d9b",
+    "semantic_hash": "4346abdd241d988ad64667784bd06d9b"
+  },
+  "J:\\GitHub\\frahman\\.claude\\CLAUDE.md": {
+    "mtime": 1782077995.5884254,
+    "ast_hash": "817fe671013b35ae0bc9301dfe449a87",
+    "semantic_hash": "817fe671013b35ae0bc9301dfe449a87"
+  },
+  "J:\\GitHub\\frahman\\.claude\\skills\\graphify\\SKILL.md": {
+    "mtime": 1782077995.5884254,
+    "ast_hash": "707be4eb520993d3e813fd11f383140b",
+    "semantic_hash": "707be4eb520993d3e813fd11f383140b"
+  },
+  "J:\\GitHub\\frahman\\.claude\\skills\\graphify\\references\\add-watch.md": {
+    "mtime": 1781975035.367802,
+    "ast_hash": "d59d027fe449f06aa03905a01184e779",
+    "semantic_hash": "d59d027fe449f06aa03905a01184e779"
+  },
+  "J:\\GitHub\\frahman\\.claude\\skills\\graphify\\references\\exports.md": {
+    "mtime": 1781975035.367802,
+    "ast_hash": "9da2a2152e60a22f07f05fed5158f287",
+    "semantic_hash": "9da2a2152e60a22f07f05fed5158f287"
+  },
+  "J:\\GitHub\\frahman\\.claude\\skills\\graphify\\references\\extraction-spec.md": {
+    "mtime": 1781975035.367802,
+    "ast_hash": "2e620982acb506f557538cdcfb1ef6da",
+    "semantic_hash": "2e620982acb506f557538cdcfb1ef6da"
+  },
+  "J:\\GitHub\\frahman\\.claude\\skills\\graphify\\references\\github-and-merge.md": {
+    "mtime": 1781975035.367802,
+    "ast_hash": "cde13df085e4c492aeb7ba298a996d0d",
+    "semantic_hash": "cde13df085e4c492aeb7ba298a996d0d"
+  },
+  "J:\\GitHub\\frahman\\.claude\\skills\\graphify\\references\\hooks.md": {
+    "mtime": 1781975035.367802,
+    "ast_hash": "3f545db6ce646650bb9de588f5512a27",
+    "semantic_hash": "3f545db6ce646650bb9de588f5512a27"
+  },
+  "J:\\GitHub\\frahman\\.claude\\skills\\graphify\\references\\query.md": {
+    "mtime": 1781975035.367802,
+    "ast_hash": "0b329f30b63b0bd89282848575c86428",
+    "semantic_hash": "0b329f30b63b0bd89282848575c86428"
+  },
+  "J:\\GitHub\\frahman\\.claude\\skills\\graphify\\references\\transcribe.md": {
+    "mtime": 1781975035.367802,
+    "ast_hash": "67b6a5fa6c0974e18f60db9f8932fbd8",
+    "semantic_hash": "67b6a5fa6c0974e18f60db9f8932fbd8"
+  },
+  "J:\\GitHub\\frahman\\.claude\\skills\\graphify\\references\\update.md": {
+    "mtime": 1781975035.367802,
+    "ast_hash": "2f78598160bfb12ab775831e0787b02a",
+    "semantic_hash": "2f78598160bfb12ab775831e0787b02a"
+  },
+  "J:\\GitHub\\frahman\\.remember\\now.md": {
+    "mtime": 1782078295.4060702,
+    "ast_hash": "34d8a9b5b0b164b9e95664d0a884dd4f",
+    "semantic_hash": "34d8a9b5b0b164b9e95664d0a884dd4f"
+  },
+  "J:\\GitHub\\frahman\\.remember\\today-2026-06-22.md": {
+    "mtime": 1782078225.7221375,
+    "ast_hash": "9336e0ccdb5985b7d5678b804328119f",
+    "semantic_hash": "9336e0ccdb5985b7d5678b804328119f"
+  },
+  "J:\\GitHub\\frahman\\CLAUDE.md": {
+    "mtime": 1782077995.5974038,
+    "ast_hash": "38a0c1f463ebe92190f78dd648469bbf",
+    "semantic_hash": "38a0c1f463ebe92190f78dd648469bbf"
+  },
+  "J:\\GitHub\\frahman\\README.md": {
+    "mtime": 1782073852.5466356,
+    "ast_hash": "d5a017e7fe8dca5c22e9d18fac0bc010",
+    "semantic_hash": "d5a017e7fe8dca5c22e9d18fac0bc010"
+  },
+  "J:\\GitHub\\frahman\\SRS.md": {
+    "mtime": 1782074387.928893,
+    "ast_hash": "1127fbd86f38363d2401f55e93b1675c",
+    "semantic_hash": "1127fbd86f38363d2401f55e93b1675c"
+  }
+}

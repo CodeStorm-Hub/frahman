@@ -4,6 +4,7 @@ import {
   Store,
   BookOpen,
   ShoppingCart,
+  ScrollText,
   type LucideIcon,
 } from "lucide-react";
 
@@ -48,7 +49,14 @@ export const navItems: NavItem[] = [
     label: "Accounting",
     href: "/accounting",
     icon: BookOpen,
-    shortLabel: "Ledger",
+    shortLabel: "Acctg",
     description: "Accounting Ledgers",
+  },
+  {
+    label: "Ledger",
+    href: "/ledgers",
+    icon: ScrollText,
+    shortLabel: "Ledger",
+    description: "General Ledger",
   },
 ];

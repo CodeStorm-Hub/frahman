@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import prisma from "@/lib/prisma";
 import { ProcurementIntakeForm } from "@/components/procurement/intake-form";
+import { StockAdjustmentDialog } from "@/components/procurement/stock-adjustment-dialog";
 
 export const metadata: Metadata = { title: "Procurement — Frahman & Brothers" };
 
@@ -25,6 +26,17 @@ export default async function ProcurementPage() {
       include: { product: { select: { name: true } } },
     }),
   ]);
+
+  // Data for the adjustment dialog (all batches with remaining stock)
+  const adjustmentBatches = recentBatches
+    .filter((b) => b.currentBagsCount > 0)
+    .map((b) => ({
+      id: b.id,
+      governmentChallanNo: b.governmentChallanNo,
+      currentBagsCount: b.currentBagsCount,
+      landedCostPerBagPoisha: b.landedCostPerBagPoisha,
+      product: { name: b.product.name },
+    }));
 
   // Summary stats
   const totalBatches = recentBatches.length;
@@ -60,11 +72,16 @@ export default async function ProcurementPage() {
 
   return (
     <div className="space-y-5 md:space-y-6">
-      <div className="hidden md:block">
-        <h1 className="text-xl font-semibold text-foreground">Procurement</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Log government depot allocations and track landed costs
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="hidden md:block">
+          <h1 className="text-xl font-semibold text-foreground">Procurement</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Log government depot allocations and track landed costs
+          </p>
+        </div>
+        <div className="ml-auto">
+          <StockAdjustmentDialog batches={adjustmentBatches} />
+        </div>
       </div>
 
       {/* Summary cards */}

@@ -19,10 +19,10 @@ export async function createSalesInvoice(
   prevState: SalesFormState,
   formData: FormData,
 ): Promise<SalesFormState> {
-  const retailerId = formData.get("retailerId") as string;
-  const overrideRaw = formData.get("override") as string | null;
-  const override = overrideRaw === "true";
-  const linesJson = formData.get("linesJson") as string;
+  const retailerId = String(formData.get("retailerId") ?? "").trim();
+  // "true" string sent by the client toggle; any other value is false
+  const override = formData.get("override") === "true";
+  const linesJson = String(formData.get("linesJson") ?? "").trim();
 
   if (!retailerId) return { status: "error", message: "Please select a retailer." };
   if (!linesJson) return { status: "error", message: "No line items provided." };
@@ -35,14 +35,13 @@ export async function createSalesInvoice(
   }
 
   if (!lines.length) return { status: "error", message: "Add at least one product line." };
-  if (lines.some((l) => l.bagsCount <= 0))
-    return { status: "error", message: "All bag counts must be positive." };
-  if (lines.some((l) => l.pricePerBagPoisha <= 0))
+  if (lines.some((l) => !Number.isInteger(l.bagsCount) || l.bagsCount <= 0))
+    return { status: "error", message: "All bag counts must be positive whole numbers." };
+  if (lines.some((l) => !Number.isInteger(l.pricePerBagPoisha) || l.pricePerBagPoisha <= 0))
     return { status: "error", message: "All prices must be positive." };
 
   try {
     const result = await prisma.$transaction(async (tx) => {
-      // -- Fetch retailer (authoritative balance check) --
       const retailer = await tx.retailer.findUniqueOrThrow({
         where: { id: retailerId },
       });
@@ -51,7 +50,6 @@ export async function createSalesInvoice(
         throw new Error("Retailer is not authorized for credit sales.");
       }
 
-      // -- Server-side credit check --
       const totalSalePoisha = lines.reduce(
         (s, l) => s + l.bagsCount * l.pricePerBagPoisha,
         0,
@@ -63,7 +61,6 @@ export async function createSalesInvoice(
         );
       }
 
-      // -- Fetch required accounts --
       const [arAccount, revenueAccount, cogsAccount, inventoryAccount] =
         await Promise.all([
           tx.account.findUniqueOrThrow({ where: { code: "1300" } }),
@@ -72,7 +69,7 @@ export async function createSalesInvoice(
           tx.account.findUniqueOrThrow({ where: { code: "1200" } }),
         ]);
 
-      // -- FIFO batch depletion + COGS accumulation --
+      // FIFO batch depletion + COGS accumulation
       let totalCOGSPoisha = 0;
       const batchUpdates: Array<{ id: string; currentBagsCount: number }> = [];
 
@@ -87,22 +84,21 @@ export async function createSalesInvoice(
           if (remaining <= 0) break;
           const take = Math.min(batch.currentBagsCount, remaining);
           totalCOGSPoisha += take * batch.landedCostPerBagPoisha;
-          batchUpdates.push({
-            id: batch.id,
-            currentBagsCount: batch.currentBagsCount - take,
-          });
+          batchUpdates.push({ id: batch.id, currentBagsCount: batch.currentBagsCount - take });
           remaining -= take;
         }
 
         if (remaining > 0) {
-          const product = await tx.product.findUnique({ where: { id: line.productId }, select: { name: true } });
+          const product = await tx.product.findUnique({
+            where: { id: line.productId },
+            select: { name: true },
+          });
           throw new Error(
             `STOCK_INSUFFICIENT:Insufficient stock for ${product?.name ?? line.productId}. Need ${line.bagsCount} bags but only ${line.bagsCount - remaining} available.`,
           );
         }
       }
 
-      // Apply batch decrements
       await Promise.all(
         batchUpdates.map((u) =>
           tx.inventoryBatch.update({
@@ -112,7 +108,6 @@ export async function createSalesInvoice(
         ),
       );
 
-      // -- Generate invoice number (INV-YYYY-NNNN) --
       const lastInvoice = await tx.salesInvoice.findFirst({
         orderBy: { invoiceNo: "desc" },
         select: { invoiceNo: true },
@@ -122,7 +117,6 @@ export async function createSalesInvoice(
         : 1;
       const invoiceNo = `INV-2026-${String(nextSeq).padStart(4, "0")}`;
 
-      // -- Create SalesInvoice + SalesInvoiceLines --
       const invoice = await tx.salesInvoice.create({
         data: {
           invoiceNo,
@@ -138,13 +132,11 @@ export async function createSalesInvoice(
         },
       });
 
-      // -- Update retailer outstanding balance --
       await tx.retailer.update({
         where: { id: retailerId },
         data: { currentBalancePoisha: { increment: totalSalePoisha } },
       });
 
-      // -- Double-entry JournalEntry (4 lines, two balanced pairs) --
       await tx.journalEntry.create({
         data: {
           referenceNo: invoiceNo,
@@ -152,12 +144,10 @@ export async function createSalesInvoice(
           salesInvoiceId: invoice.id,
           lines: {
             create: [
-              // Revenue pair: DR Accounts Receivable / CR Wholesale Revenue
-              { accountId: arAccount.id,      debitPoisha: totalSalePoisha,  creditPoisha: 0             },
-              { accountId: revenueAccount.id, debitPoisha: 0,               creditPoisha: totalSalePoisha },
-              // COGS pair: DR Cost of Goods Sold / CR Inventory Asset
-              { accountId: cogsAccount.id,      debitPoisha: totalCOGSPoisha, creditPoisha: 0              },
-              { accountId: inventoryAccount.id, debitPoisha: 0,              creditPoisha: totalCOGSPoisha },
+              { accountId: arAccount.id,        debitPoisha: totalSalePoisha,  creditPoisha: 0              },
+              { accountId: revenueAccount.id,    debitPoisha: 0,               creditPoisha: totalSalePoisha },
+              { accountId: cogsAccount.id,       debitPoisha: totalCOGSPoisha, creditPoisha: 0              },
+              { accountId: inventoryAccount.id,  debitPoisha: 0,               creditPoisha: totalCOGSPoisha },
             ],
           },
         },
@@ -169,6 +159,8 @@ export async function createSalesInvoice(
     revalidatePath("/retailers");
     revalidatePath("/sales/new");
     revalidatePath("/procurement");
+    revalidatePath("/");
+    revalidatePath("/ledgers");
 
     return { status: "success", message: `Invoice ${result} created successfully.`, invoiceNo: result };
   } catch (err) {

@@ -1,118 +1,128 @@
 import type { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import prisma from "@/lib/prisma";
 import {
   Package,
-  Store,
-  CreditCard,
+  Users,
   TrendingUp,
-  ArrowUpRight,
-  ArrowDownRight,
+  BarChart3,
+  BookOpen,
   Clock,
 } from "lucide-react";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-const kpis = [
-  {
-    label: "Procurement Volume",
-    value: "৳12,40,000",
-    change: "+8.2%",
-    trend: "up" as const,
-    sub: "This month",
-    icon: Package,
-    color: "text-blue-400",
-    bg: "bg-blue-500/10",
-  },
-  {
-    label: "Active Retailers",
-    value: "23",
-    change: "+3",
-    trend: "up" as const,
-    sub: "vs last month",
-    icon: Store,
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-  },
-  {
-    label: "Outstanding Credit",
-    value: "৳3,40,000",
-    change: "-5.1%",
-    trend: "down" as const,
-    sub: "Across all retailers",
-    icon: CreditCard,
-    color: "text-amber-400",
-    bg: "bg-amber-500/10",
-  },
-  {
-    label: "Net Cash Position",
-    value: "৳8,92,500",
-    change: "+12.4%",
-    trend: "up" as const,
-    sub: "Running total",
-    icon: TrendingUp,
-    color: "text-violet-400",
-    bg: "bg-violet-500/10",
-  },
-];
+function formatTaka(poisha: number): string {
+  const taka = poisha / 100;
+  return "৳" + taka.toLocaleString("en-BD", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
 
-const recentActivity = [
-  {
-    id: 1,
-    description: "Ministry of Health — Medical Supplies PO-2024-034",
-    amount: "+৳2,15,000",
-    status: "Delivered",
-    variant: "outline" as const,
-    statusClass: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
-    time: "2h ago",
-  },
-  {
-    id: 2,
-    description: "Rahman Traders — Credit extended",
-    amount: "৳40,000",
-    status: "Pending",
-    variant: "outline" as const,
-    statusClass: "border-amber-500/30 bg-amber-500/10 text-amber-400",
-    time: "4h ago",
-  },
-  {
-    id: 3,
-    description: "Dhaka City Corp — Stationery Bulk PO-2024-033",
-    amount: "+৳87,500",
-    status: "In Transit",
-    variant: "outline" as const,
-    statusClass: "border-blue-500/30 bg-blue-500/10 text-blue-400",
-    time: "Yesterday",
-  },
-  {
-    id: 4,
-    description: "Karim Bros Wholesale — Credit repayment received",
-    amount: "+৳60,000",
-    status: "Settled",
-    variant: "outline" as const,
-    statusClass: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
-    time: "Yesterday",
-  },
-  {
-    id: 5,
-    description: "Utility bills — Warehouse & Office June 2024",
-    amount: "-৳18,200",
-    status: "Paid",
-    variant: "outline" as const,
-    statusClass: "border-border bg-muted/40 text-muted-foreground",
-    time: "2 days ago",
-  },
-];
+function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-BD", { day: "2-digit", month: "short", year: "numeric" });
+}
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const [
+    batches,
+    retailerBalances,
+    revenueAgg,
+    cogsAgg,
+    lossAgg,
+    recentEntries,
+  ] = await Promise.all([
+    // Current inventory: sum currentBagsCount × landedCostPerBagPoisha
+    prisma.inventoryBatch.findMany({
+      select: { currentBagsCount: true, landedCostPerBagPoisha: true },
+    }),
+    // Outstanding receivables: all retailer balances
+    prisma.retailer.aggregate({
+      _sum: { currentBalancePoisha: true },
+    }),
+    // Gross revenue: credits to account 4100 (Wholesale Revenue)
+    prisma.ledgerLine.aggregate({
+      _sum: { creditPoisha: true },
+      where: { account: { code: "4100" } },
+    }),
+    // COGS: debits to account 5100
+    prisma.ledgerLine.aggregate({
+      _sum: { debitPoisha: true },
+      where: { account: { code: "5100" } },
+    }),
+    // Inventory losses: debits to account 5200
+    prisma.ledgerLine.aggregate({
+      _sum: { debitPoisha: true },
+      where: { account: { code: "5200" } },
+    }),
+    // Recent journal entries for activity feed
+    prisma.journalEntry.findMany({
+      orderBy: { entryDate: "desc" },
+      take: 8,
+      include: {
+        lines: {
+          where: { debitPoisha: { gt: 0 } },
+          select: { debitPoisha: true },
+        },
+      },
+    }),
+  ]);
+
+  // ── KPI calculations ──────────────────────────────────────────────────────
+  const inventoryAssetPoisha = batches.reduce(
+    (s, b) => s + b.currentBagsCount * b.landedCostPerBagPoisha,
+    0,
+  );
+  const outstandingReceivablesPoisha = retailerBalances._sum.currentBalancePoisha ?? 0;
+  const grossRevenuePoisha = revenueAgg._sum.creditPoisha ?? 0;
+  const cogsPoisha = cogsAgg._sum.debitPoisha ?? 0;
+  const inventoryLossPoisha = lossAgg._sum.debitPoisha ?? 0;
+  const netProfitPoisha = grossRevenuePoisha - cogsPoisha - inventoryLossPoisha;
+  const netMarginPct =
+    grossRevenuePoisha > 0
+      ? ((netProfitPoisha / grossRevenuePoisha) * 100).toFixed(1)
+      : "0.0";
+
+  const kpis = [
+    {
+      label: "Inventory Asset",
+      value: formatTaka(inventoryAssetPoisha),
+      sub: "Current bags × landed cost",
+      icon: Package,
+      color: "text-blue-400",
+      bg: "bg-blue-500/10",
+    },
+    {
+      label: "Outstanding Receivables",
+      value: formatTaka(outstandingReceivablesPoisha),
+      sub: "Total owed by all dealers",
+      icon: Users,
+      color: "text-amber-400",
+      bg: "bg-amber-500/10",
+    },
+    {
+      label: "Gross Revenue",
+      value: formatTaka(grossRevenuePoisha),
+      sub: "Cumulative wholesale sales",
+      icon: TrendingUp,
+      color: "text-emerald-400",
+      bg: "bg-emerald-500/10",
+    },
+    {
+      label: "Net Profit Margin",
+      value: `${netMarginPct}%`,
+      sub: formatTaka(netProfitPoisha) + " net profit",
+      icon: BarChart3,
+      color: "text-violet-400",
+      bg: "bg-violet-500/10",
+    },
+  ];
+
   return (
     <div className="space-y-5 md:space-y-6">
-      {/* Page heading — desktop only (mobile uses TopHeader) */}
       <div className="hidden md:block">
         <h1 className="text-xl font-semibold text-foreground">Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Overview of operations &amp; key metrics
+          Live metrics derived from the general ledger
         </p>
       </div>
 
@@ -123,83 +133,67 @@ export default function DashboardPage() {
           return (
             <Card key={kpi.label} className="border-border bg-card">
               <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div
-                    className={cn(
-                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-                      kpi.bg
-                    )}
-                  >
-                    <Icon className={cn("h-4 w-4", kpi.color)} />
-                  </div>
-                  <span
-                    className={cn(
-                      "flex items-center gap-0.5 text-xs font-medium",
-                      kpi.trend === "up" ? "text-emerald-400" : "text-red-400"
-                    )}
-                  >
-                    {kpi.trend === "up" ? (
-                      <ArrowUpRight className="h-3 w-3" />
-                    ) : (
-                      <ArrowDownRight className="h-3 w-3" />
-                    )}
-                    {kpi.change}
-                  </span>
+                <div
+                  className={cn(
+                    "mb-3 flex h-9 w-9 items-center justify-center rounded-lg",
+                    kpi.bg,
+                  )}
+                >
+                  <Icon className={cn("h-4 w-4", kpi.color)} />
                 </div>
-                <div className="mt-3">
-                  <p className="text-xs text-muted-foreground">{kpi.label}</p>
-                  <p className="mt-0.5 text-lg font-bold tabular-nums tracking-tight text-foreground">
-                    {kpi.value}
-                  </p>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground/60">
-                    {kpi.sub}
-                  </p>
-                </div>
+                <p className="text-lg font-bold tabular-nums tracking-tight text-foreground md:text-xl">
+                  {kpi.value}
+                </p>
+                <p className="text-xs text-muted-foreground">{kpi.label}</p>
+                <p className="mt-0.5 text-[10px] text-muted-foreground/60">{kpi.sub}</p>
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {/* Recent activity feed */}
+      {/* Recent ledger activity */}
       <Card className="border-border bg-card">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">
-            Recent Activity
-          </CardTitle>
+          <CardTitle className="text-sm font-semibold">Recent Ledger Activity</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <ul className="divide-y divide-border">
-            {recentActivity.map((item) => (
-              <li
-                key={item.id}
-                className="flex items-center gap-3 px-5 py-3.5"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {item.description}
-                  </p>
-                  <div className="mt-1 flex items-center gap-1.5">
-                    <Clock className="h-3 w-3 shrink-0 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">
-                      {item.time}
+          {recentEntries.length === 0 ? (
+            <div className="px-5 py-10 text-center text-sm text-muted-foreground">
+              No transactions recorded yet. Log a procurement intake to get started.
+            </div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {recentEntries.map((entry) => {
+                const totalDebit = entry.lines.reduce((s, l) => s + l.debitPoisha, 0);
+                return (
+                  <li key={entry.id} className="flex items-center gap-3 px-5 py-3.5">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted/40">
+                      <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {entry.description}
+                      </p>
+                      <div className="mt-0.5 flex items-center gap-1.5">
+                        <Clock className="h-3 w-3 shrink-0 text-muted-foreground" />
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {entry.referenceNo}
+                        </span>
+                        <span className="text-xs text-muted-foreground/50">·</span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(entry.entryDate)}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                      {totalDebit > 0 ? formatTaka(totalDebit) : "—"}
                     </span>
-                  </div>
-                </div>
-                <div className="flex shrink-0 flex-col items-end gap-1.5">
-                  <span className="text-sm font-semibold tabular-nums text-foreground">
-                    {item.amount}
-                  </span>
-                  <Badge
-                    variant={item.variant}
-                    className={cn("text-[10px]", item.statusClass)}
-                  >
-                    {item.status}
-                  </Badge>
-                </div>
-              </li>
-            ))}
-          </ul>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </CardContent>
       </Card>
     </div>
