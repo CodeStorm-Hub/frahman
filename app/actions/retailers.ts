@@ -123,6 +123,33 @@ export async function updateRetailer(
   }
 }
 
+export async function deleteRetailer(
+  prevState: UpdateRetailerFormState,
+  formData: FormData,
+): Promise<UpdateRetailerFormState> {
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) return { status: "error", message: "Retailer ID missing." };
+
+  const retailer = await prisma.retailer.findUnique({
+    where: { id },
+    select: { shopName: true, _count: { select: { invoices: true } } },
+  });
+  if (!retailer) return { status: "error", message: "Retailer not found." };
+
+  if (retailer._count.invoices > 0) {
+    return {
+      status: "error",
+      message: `"${retailer.shopName}" has invoice history and can't be deleted — suspend the account instead to block new sales.`,
+    };
+  }
+
+  await prisma.retailer.delete({ where: { id } });
+
+  revalidatePath("/retailers");
+  revalidatePath("/sales/new");
+  return { status: "success", message: `"${retailer.shopName}" deleted.` };
+}
+
 export async function toggleRetailerAuthorization(
   prevState: UpdateRetailerFormState,
   formData: FormData,

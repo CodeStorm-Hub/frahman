@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useState, useTransition, useCallback } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  useTransition,
+} from "react";
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import { Search, Store, Receipt, FlaskConical, Loader2 } from "lucide-react";
@@ -19,7 +26,30 @@ const TYPE_LABEL = {
   product: "Products",
 } as const;
 
-export function CommandPalette() {
+type SearchPaletteContextValue = {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+};
+
+const SearchPaletteContext = createContext<SearchPaletteContextValue | null>(null);
+
+export function useSearchPalette() {
+  const ctx = useContext(SearchPaletteContext);
+  if (!ctx) {
+    throw new Error("useSearchPalette must be used within a SearchPaletteProvider");
+  }
+  return ctx;
+}
+
+/**
+ * Mounts the command palette dialog exactly once, outside the desktop-only
+ * sidebar (which is `hidden` below the md breakpoint). Anything rendered
+ * inside a `display:none` ancestor stays invisible even after its own state
+ * flips open, so the dialog must live at a layout level visible on every
+ * breakpoint while triggers (sidebar search box, mobile header icon) just
+ * call setOpen via this context.
+ */
+export function SearchPaletteProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -77,24 +107,9 @@ export function CommandPalette() {
   const hasResults = Object.values(grouped).some((g) => g.length > 0);
 
   return (
-    <>
-      {/* Trigger button — shown in sidebar and top-header via slot */}
-      <button
-        id="cmd-palette-trigger"
-        onClick={() => setOpen(true)}
-        className={cn(
-          "group flex w-full items-center gap-2.5 rounded-md border border-border/50 bg-muted/20 px-3 py-2",
-          "text-sm text-muted-foreground transition-colors hover:border-border hover:bg-muted/40",
-        )}
-      >
-        <Search className="h-3.5 w-3.5 shrink-0" />
-        <span className="flex-1 text-left text-xs">Search…</span>
-        <kbd className="hidden rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground/60 sm:inline">
-          ⌘K
-        </kbd>
-      </button>
+    <SearchPaletteContext.Provider value={{ open, setOpen }}>
+      {children}
 
-      {/* Dialog overlay */}
       {open && (
         <div
           className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] px-4"
@@ -190,6 +205,26 @@ export function CommandPalette() {
           </Command>
         </div>
       )}
-    </>
+    </SearchPaletteContext.Provider>
+  );
+}
+
+/** Visible "Search…" trigger box, used in the desktop/tablet sidebar. */
+export function SearchTrigger() {
+  const { setOpen } = useSearchPalette();
+  return (
+    <button
+      onClick={() => setOpen(true)}
+      className={cn(
+        "group flex w-full items-center gap-2.5 rounded-md border border-border/50 bg-muted/20 px-3 py-2",
+        "text-sm text-muted-foreground transition-colors hover:border-border hover:bg-muted/40",
+      )}
+    >
+      <Search className="h-3.5 w-3.5 shrink-0" />
+      <span className="flex-1 text-left text-xs">Search…</span>
+      <kbd className="hidden rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground/60 sm:inline">
+        ⌘K
+      </kbd>
+    </button>
   );
 }

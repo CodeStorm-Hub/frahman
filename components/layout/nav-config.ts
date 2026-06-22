@@ -2,7 +2,6 @@ import {
   LayoutDashboard,
   Package,
   Store,
-  ShoppingCart,
   ScrollText,
   Receipt,
   BarChart3,
@@ -20,8 +19,6 @@ export type NavItem = {
   description: string;
   /** Section header the item is grouped under in the desktop/tablet sidebar */
   group: NavGroup;
-  /** When true, item appears in desktop sidebar only, not the mobile bottom tab bar */
-  desktopOnly?: boolean;
 };
 
 export const navGroups: NavGroup[] = ["Overview", "Sales", "Inventory", "Finance"];
@@ -34,14 +31,6 @@ export const navItems: NavItem[] = [
     shortLabel: "Home",
     description: "Overview & KPIs",
     group: "Overview",
-  },
-  {
-    label: "New Sale",
-    href: "/sales/new",
-    icon: ShoppingCart,
-    shortLabel: "Sale",
-    description: "Create Invoice",
-    group: "Sales",
   },
   {
     label: "Invoices",
@@ -74,7 +63,6 @@ export const navItems: NavItem[] = [
     shortLabel: "Products",
     description: "Fertilizer Catalogue",
     group: "Inventory",
-    desktopOnly: true,
   },
   {
     label: "P&L Overview",
@@ -83,7 +71,6 @@ export const navItems: NavItem[] = [
     shortLabel: "P&L",
     description: "Profit & Loss",
     group: "Finance",
-    desktopOnly: true,
   },
   {
     label: "Ledger",
@@ -92,6 +79,5 @@ export const navItems: NavItem[] = [
     shortLabel: "Ledger",
     description: "General Ledger",
     group: "Finance",
-    desktopOnly: true,
   },
 ];

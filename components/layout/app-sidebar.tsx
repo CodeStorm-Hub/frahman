@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { signOutAction } from "@/app/actions/auth";
 import { LogOut } from "lucide-react";
-import { CommandPalette } from "@/components/search/command-palette";
+import { SearchTrigger } from "@/components/search/command-palette";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -45,7 +45,7 @@ export function AppSidebar() {
 
       {/* Search */}
       <div className="shrink-0 border-b border-sidebar-border px-3 py-2.5">
-        <CommandPalette />
+        <SearchTrigger />
       </div>
 
       {/* Navigation */}

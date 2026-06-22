@@ -74,3 +74,35 @@ export async function updateProduct(
   revalidatePath("/sales/new");
   return { status: "success", message: `Product "${name}" updated.` };
 }
+
+export async function deleteProduct(
+  _prev: ProductFormState,
+  formData: FormData,
+): Promise<ProductFormState> {
+  const id = formData.get("id")?.toString() ?? "";
+  if (!id) return { status: "error", message: "Product ID missing." };
+
+  const product = await prisma.product.findUnique({
+    where: { id },
+    select: {
+      name: true,
+      _count: { select: { batches: true, stockTransactions: true, salesLines: true } },
+    },
+  });
+  if (!product) return { status: "error", message: "Product not found." };
+
+  const { batches, stockTransactions, salesLines } = product._count;
+  if (batches > 0 || stockTransactions > 0 || salesLines > 0) {
+    return {
+      status: "error",
+      message: `"${product.name}" has procurement, stock, or sales history and can't be deleted — it would break the audit trail.`,
+    };
+  }
+
+  await prisma.product.delete({ where: { id } });
+
+  revalidatePath("/products");
+  revalidatePath("/procurement");
+  revalidatePath("/sales/new");
+  return { status: "success", message: `Product "${product.name}" deleted.` };
+}

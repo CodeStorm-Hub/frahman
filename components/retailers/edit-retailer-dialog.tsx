@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { Pencil, CheckCircle2, AlertCircle, Loader2, ShieldOff, ShieldCheck } from "lucide-react";
+import { Pencil, CheckCircle2, AlertCircle, Loader2, ShieldOff, ShieldCheck, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,10 +12,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import {
   updateRetailer,
   toggleRetailerAuthorization,
+  deleteRetailer,
   type UpdateRetailerFormState,
 } from "@/app/actions/retailers";
 
@@ -41,9 +53,18 @@ export function EditRetailerDialog({ retailer }: { retailer: EditableRetailer })
     toggleRetailerAuthorization,
     initialState,
   );
+  const [deleteState, deleteAction, isDeletePending] = useActionState(
+    deleteRetailer,
+    initialState,
+  );
   const formRef = useRef<HTMLFormElement>(null);
 
-  const activeState = updateState.status !== "idle" ? updateState : toggleState;
+  const activeState =
+    deleteState.status !== "idle"
+      ? deleteState
+      : updateState.status !== "idle"
+        ? updateState
+        : toggleState;
 
   useEffect(() => {
     if (updateState.status === "success") {
@@ -58,6 +79,13 @@ export function EditRetailerDialog({ retailer }: { retailer: EditableRetailer })
       return () => clearTimeout(t);
     }
   }, [toggleState.status, toggleState.message]);
+
+  useEffect(() => {
+    if (deleteState.status === "success") {
+      const t = setTimeout(() => setOpen(false), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [deleteState.status, deleteState.message]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -189,32 +217,73 @@ export function EditRetailerDialog({ retailer }: { retailer: EditableRetailer })
           </div>
         </form>
 
-        {/* Footer row — authorization toggle form + save/cancel, both siblings of the update form above */}
+        {/* Footer row — authorization toggle + delete forms, plus save/cancel, all siblings of the update form above */}
         <div className="flex items-center justify-between border-t border-border pt-3">
-          <form action={toggleAction}>
-            <input type="hidden" name="id" value={retailer.id} />
-            <Button
-              type="submit"
-              variant="outline"
-              size="sm"
-              disabled={isTogglePending}
-              className={cn(
-                "gap-1.5 text-xs",
-                retailer.isAuthorized
-                  ? "border-red-500/30 text-red-400 hover:bg-red-500/10"
-                  : "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10",
-              )}
-            >
-              {isTogglePending ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : retailer.isAuthorized ? (
-                <ShieldOff className="h-3.5 w-3.5" />
-              ) : (
-                <ShieldCheck className="h-3.5 w-3.5" />
-              )}
-              {retailer.isAuthorized ? "Suspend Retailer" : "Re-authorize"}
-            </Button>
-          </form>
+          <div className="flex gap-1.5">
+            <form action={toggleAction}>
+              <input type="hidden" name="id" value={retailer.id} />
+              <Button
+                type="submit"
+                variant="outline"
+                size="sm"
+                disabled={isTogglePending}
+                className={cn(
+                  "gap-1.5 text-xs",
+                  retailer.isAuthorized
+                    ? "border-red-500/30 text-red-400 hover:bg-red-500/10"
+                    : "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10",
+                )}
+              >
+                {isTogglePending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : retailer.isAuthorized ? (
+                  <ShieldOff className="h-3.5 w-3.5" />
+                ) : (
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                )}
+                {retailer.isAuthorized ? "Suspend" : "Re-authorize"}
+              </Button>
+            </form>
+
+            <AlertDialog>
+              <AlertDialogTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isDeletePending}
+                    className="gap-1.5 border-red-500/30 text-xs text-red-400 hover:bg-red-500/10"
+                  />
+                }
+              >
+                {isDeletePending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Trash2 className="h-3.5 w-3.5" />
+                )}
+                Delete
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete {retailer.shopName}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This permanently removes the retailer account. Retailers with invoice
+                    history can&apos;t be deleted — suspend them instead.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <form action={deleteAction}>
+                    <input type="hidden" name="id" value={retailer.id} />
+                    <AlertDialogAction type="submit" className="bg-red-500 hover:bg-red-600">
+                      Delete
+                    </AlertDialogAction>
+                  </form>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
 
           <div className="flex gap-2">
             <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>

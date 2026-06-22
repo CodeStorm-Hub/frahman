@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { Pencil, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Pencil, CheckCircle2, AlertCircle, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,8 +12,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import { updateProduct, type ProductFormState } from "@/app/actions/products";
+import { updateProduct, deleteProduct, type ProductFormState } from "@/app/actions/products";
 
 const initialState: ProductFormState = { status: "idle", message: "" };
 
@@ -27,6 +38,9 @@ export type EditableProduct = {
 export function EditProductDialog({ product }: { product: EditableProduct }) {
   const [open, setOpen] = useState(false);
   const [state, formAction, isPending] = useActionState(updateProduct, initialState);
+  const [deleteState, deleteAction, isDeletePending] = useActionState(deleteProduct, initialState);
+
+  const activeState = deleteState.status !== "idle" ? deleteState : state;
 
   useEffect(() => {
     if (state.status === "success") {
@@ -34,6 +48,13 @@ export function EditProductDialog({ product }: { product: EditableProduct }) {
       return () => clearTimeout(t);
     }
   }, [state.status, state.message]);
+
+  useEffect(() => {
+    if (deleteState.status === "success") {
+      const t = setTimeout(() => setOpen(false), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [deleteState.status, deleteState.message]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -46,17 +67,17 @@ export function EditProductDialog({ product }: { product: EditableProduct }) {
           <DialogTitle>Edit Product — {product.name}</DialogTitle>
         </DialogHeader>
 
-        {state.status !== "idle" && (
+        {activeState.status !== "idle" && (
           <div className={cn(
             "flex items-start gap-2.5 rounded-lg border px-4 py-3 text-sm",
-            state.status === "success"
+            activeState.status === "success"
               ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-400"
               : "border-red-500/25 bg-red-500/10 text-red-400",
           )}>
-            {state.status === "success"
+            {activeState.status === "success"
               ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
               : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
-            <span>{state.message}</span>
+            <span>{activeState.message}</span>
           </div>
         )}
 
@@ -103,14 +124,55 @@ export function EditProductDialog({ product }: { product: EditableProduct }) {
           </div>
         </form>
 
-        <div className="flex justify-end gap-2 border-t border-border pt-3">
-          <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
-          <Button type="submit" form="edit-product-form" size="sm" disabled={isPending}>
-            {isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
-            {isPending ? "Saving…" : "Save Changes"}
-          </Button>
+        <div className="flex items-center justify-between border-t border-border pt-3">
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isDeletePending}
+                  className="gap-1.5 border-red-500/30 text-xs text-red-400 hover:bg-red-500/10"
+                />
+              }
+            >
+              {isDeletePending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="h-3.5 w-3.5" />
+              )}
+              Delete
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete {product.name}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This permanently removes the product from the catalogue. Products with
+                  procurement, stock, or sales history can&apos;t be deleted.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <form action={deleteAction}>
+                  <input type="hidden" name="id" value={product.id} />
+                  <AlertDialogAction type="submit" className="bg-red-500 hover:bg-red-600">
+                    Delete
+                  </AlertDialogAction>
+                </form>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <div className="flex gap-2">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" form="edit-product-form" size="sm" disabled={isPending}>
+              {isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
+              {isPending ? "Saving…" : "Save Changes"}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
