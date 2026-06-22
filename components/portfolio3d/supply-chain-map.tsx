@@ -979,7 +979,7 @@ function Truck({ curve, progressRef }: { curve: THREE.CatmullRomCurve3; progress
 /* ---------------------------------- Camera rig (follows truck) --------------------------------- */
 
 function MapCameraRig({ curve, progressRef }: { curve: THREE.CatmullRomCurve3; progressRef: React.RefObject<number> }) {
-  const { camera } = useThree();
+  const { camera, size } = useThree();
   const lookTarget = useRef(new THREE.Vector3());
 
   // r3f's escape hatch: the camera object from useThree is meant to be mutated
@@ -988,7 +988,11 @@ function MapCameraRig({ curve, progressRef }: { curve: THREE.CatmullRomCurve3; p
   useFrame((_, delta) => {
     const t = THREE.MathUtils.clamp(progressRef.current, 0.001, 0.999);
     const pos = curve.getPointAt(t);
-    const desired = new THREE.Vector3(pos.x + 5, 4.6, pos.z + 5.8);
+    // Pull the camera back on narrow/portrait viewports so the same world-space
+    // framing (buildings, labels) stays fully visible instead of overflowing.
+    const aspect = size.width / size.height;
+    const zoomOut = THREE.MathUtils.clamp(1.05 / Math.min(aspect, 1.3), 1, 2.3);
+    const desired = new THREE.Vector3(pos.x + 5 * zoomOut, 4.6 * zoomOut, pos.z + 5.8 * zoomOut);
     camera.position.x = THREE.MathUtils.damp(camera.position.x, desired.x, 3, delta);
     camera.position.y = THREE.MathUtils.damp(camera.position.y, desired.y, 3, delta);
     camera.position.z = THREE.MathUtils.damp(camera.position.z, desired.z, 3, delta);
@@ -1016,10 +1020,10 @@ export function SupplyChainMap({ progressRef }: { progressRef: React.RefObject<n
 
       {/* Depot — government procurement point */}
       <DepotBuilding position={[depot.x - 0.2, 0, depot.z - 1.4]} />
-      <CratePile origin={[depot.x - 0.6, 0, depot.z - 0.3]} count={9} rotationY={0.2} />
-      <Figure position={[depot.x + 0.6, 0, depot.z - 0.5]} shirt="#caa14a" hat="hardhat" bobOffset={0} carrying />
-      <Figure position={[depot.x + 0.9, 0, depot.z - 0.2]} shirt="#5b8fb0" hat="cap" bobOffset={1.4} />
-      <LampPost position={[depot.x - 1.6, 0, depot.z + 0.4]} />
+      <CratePile origin={[depot.x - 0.9, 0, depot.z - 1.1]} count={9} rotationY={0.2} />
+      <Figure position={[depot.x + 0.5, 0, depot.z - 1.0]} shirt="#caa14a" hat="hardhat" bobOffset={0} carrying />
+      <Figure position={[depot.x + 0.9, 0, depot.z - 0.9]} shirt="#5b8fb0" hat="cap" bobOffset={1.4} />
+      <LampPost position={[depot.x - 1.8, 0, depot.z + 1.0]} />
       <StationMarker
         position={[depot.x - 0.2, 1.9, depot.z - 1.4]}
         index="01"
@@ -1029,11 +1033,11 @@ export function SupplyChainMap({ progressRef }: { progressRef: React.RefObject<n
 
       {/* Warehouse — climate-controlled godown */}
       <WarehouseBuilding position={[warehouse.x + 0.4, 0, warehouse.z + 1.6]} />
-      <CratePile origin={[warehouse.x, 0, warehouse.z + 0.6]} count={12} rotationY={-0.1} />
-      <CratePile origin={[warehouse.x + 1, 0, warehouse.z + 0.6]} count={6} rotationY={0.3} />
-      <Figure position={[warehouse.x - 0.5, 0, warehouse.z + 0.3]} shirt="#3f7a52" hat="hardhat" bobOffset={0.6} carrying />
-      <Figure position={[warehouse.x - 0.8, 0, warehouse.z + 0.7]} shirt="#caa14a" hat="hardhat" bobOffset={2.1} />
-      <LampPost position={[warehouse.x + 2.1, 0, warehouse.z + 0.3]} />
+      <CratePile origin={[warehouse.x + 0.1, 0, warehouse.z + 1.1]} count={12} rotationY={-0.1} />
+      <CratePile origin={[warehouse.x + 1, 0, warehouse.z + 1.2]} count={6} rotationY={0.3} />
+      <Figure position={[warehouse.x - 0.3, 0, warehouse.z + 1.0]} shirt="#3f7a52" hat="hardhat" bobOffset={0.6} carrying />
+      <Figure position={[warehouse.x - 0.6, 0, warehouse.z + 1.3]} shirt="#caa14a" hat="hardhat" bobOffset={2.1} />
+      <LampPost position={[warehouse.x + 2.2, 0, warehouse.z + 0.9]} />
       <StationMarker
         position={[warehouse.x + 0.4, 2.4, warehouse.z + 1.6]}
         index="02"
@@ -1050,10 +1054,10 @@ export function SupplyChainMap({ progressRef }: { progressRef: React.RefObject<n
         />
       ))}
       <Awning position={[retail.x, 1.45, retail.z - 1.06]} width={3.9} />
-      <Figure position={[retail.x - 1.6, 0, retail.z - 0.6]} shirt="#5b8fb0" hat="cap" bobOffset={0.9} />
-      <Figure position={[retail.x + 0.3, 0, retail.z - 0.6]} shirt="#7fb88a" bobOffset={1.8} carrying />
-      <CratePile origin={[retail.x, 0, retail.z - 0.4]} count={4} rotationY={0.4} />
-      <LampPost position={[retail.x - 2.3, 0, retail.z + 0.4]} />
+      <Figure position={[retail.x - 1.6, 0, retail.z - 1.1]} shirt="#5b8fb0" hat="cap" bobOffset={0.9} />
+      <Figure position={[retail.x + 0.3, 0, retail.z - 1.1]} shirt="#7fb88a" bobOffset={1.8} carrying />
+      <CratePile origin={[retail.x, 0, retail.z - 1.0]} count={4} rotationY={0.4} />
+      <LampPost position={[retail.x - 2.4, 0, retail.z + 0.9]} />
       <StationMarker
         position={[retail.x, 1.9, retail.z - 1.5]}
         index="03"

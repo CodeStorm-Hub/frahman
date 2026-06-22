@@ -14,6 +14,13 @@ export function Hero() {
 
   return (
     <div id="top" ref={ref} className="relative overflow-hidden pt-28 pb-16 md:pt-40 md:pb-28">
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(105deg, var(--p-bg) 0%, color-mix(in oklch, var(--p-bg) 80%, transparent) 45%, transparent 78%), linear-gradient(to top, var(--p-bg) 0%, transparent 45%)",
+        }}
+      />
       <motion.div style={{ opacity }} className="relative mx-auto max-w-6xl px-5 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: 16 }}

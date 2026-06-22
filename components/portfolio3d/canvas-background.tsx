@@ -6,7 +6,10 @@ import { Scene } from "./scene";
 
 export function CanvasBackground() {
   return (
-    <div className="fixed inset-0 -z-10">
+    <div
+      className="fixed inset-0 -z-10 transition-opacity duration-300"
+      style={{ opacity: "var(--map-opacity, 1)" }}
+    >
       <Canvas
         camera={{ position: [0, 0.4, 6], fov: 45 }}
         dpr={[1, 1.75]}
