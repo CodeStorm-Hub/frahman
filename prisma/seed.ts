@@ -1,7 +1,23 @@
+import bcrypt from "bcryptjs";
 import { toPoisha } from "../lib/currency";
 import prisma from "../lib/prisma";
 
 async function main() {
+  // -------------------------------------------------------------------------
+  // Owner login — username/password come from env, falling back to the
+  // documented default (admin / frahman2024) for first-run setup.
+  // -------------------------------------------------------------------------
+  const ownerUsername = process.env.AUTH_USERNAME ?? "admin";
+  const ownerPassword = process.env.AUTH_SEED_PASSWORD ?? "frahman2024";
+  const ownerPasswordHash = await bcrypt.hash(ownerPassword, 12);
+
+  await prisma.user.upsert({
+    where:  { username: ownerUsername },
+    update: { passwordHash: ownerPasswordHash },
+    create: { username: ownerUsername, passwordHash: ownerPasswordHash, name: "Frahman Admin" },
+  });
+  console.log(`Seeded owner login: ${ownerUsername}`);
+
   // -------------------------------------------------------------------------
   // Products — core fertilizer catalogue
   // Official rates are published in BDT per 50 kg bag; stored as Poisha.
