@@ -10,6 +10,18 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { signOutAction } from "@/app/actions/auth";
 import { LogOut } from "lucide-react";
 import { CommandPalette } from "@/components/search/command-palette";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -95,6 +107,34 @@ export function AppSidebar() {
       {/* Footer */}
       <div className="shrink-0 border-t border-sidebar-border px-3 py-3 lg:px-5">
         <Separator className="mb-3 hidden bg-sidebar-border lg:block" />
+        <AlertDialog>
+          <AlertDialogTrigger
+            render={
+              <Button
+                variant="ghost"
+                title="Sign out"
+                className="mb-1 h-8 w-full justify-center gap-2 text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground lg:justify-start"
+              />
+            }
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            <span className="hidden lg:inline">Sign out</span>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Sign out</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to sign out of Frahman & Brothers?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => signOutAction()}>
+                Sign out
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         <div className="flex items-center justify-center lg:justify-between">
           <p className="hidden text-[11px] text-sidebar-foreground/25 lg:inline">
             Frahman v1.0

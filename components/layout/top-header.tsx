@@ -4,7 +4,19 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { navItems } from "./nav-config";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Search } from "lucide-react";
+import { Search, LogOut } from "lucide-react";
+import { signOutAction } from "@/app/actions/auth";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export function TopHeader() {
   const pathname = usePathname();
@@ -41,6 +53,32 @@ export function TopHeader() {
         <Search className="h-4 w-4" />
       </button>
       <ThemeToggle />
+      <AlertDialog>
+        <AlertDialogTrigger
+          render={
+            <button
+              aria-label="Sign out"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            />
+          }
+        >
+          <LogOut className="h-4 w-4" />
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sign out</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to sign out of Frahman & Brothers?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => signOutAction()}>
+              Sign out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </header>
   );
 }
