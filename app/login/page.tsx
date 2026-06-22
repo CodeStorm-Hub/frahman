@@ -1,11 +1,38 @@
 "use client";
 
-import { useActionState } from "react";
-import { loginAction } from "@/app/actions/auth";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { cn } from "@/lib/utils";
 
 export default function LoginPage() {
-  const [error, formAction, isPending] = useActionState(loginAction, null);
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const username = (form.elements.namedItem("username") as HTMLInputElement).value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+
+    setError(null);
+    startTransition(async () => {
+      const result = await signIn("credentials", {
+        username,
+        password,
+        redirect: false,
+      });
+
+      if (!result || result.error) {
+        setError("Invalid username or password.");
+      } else {
+        // Session cookie is now set — refresh server components then navigate
+        router.refresh();
+        router.push("/");
+      }
+    });
+  }
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-4">
@@ -16,13 +43,13 @@ export default function LoginPage() {
             <span className="text-lg font-bold text-sidebar-primary-foreground">F</span>
           </div>
           <div className="text-center">
-            <h1 className="text-xl font-semibold text-foreground">Frahman & Brothers</h1>
+            <h1 className="text-xl font-semibold text-foreground">Frahman &amp; Brothers</h1>
             <p className="mt-1 text-sm text-muted-foreground">Operations management system</p>
           </div>
         </div>
 
         {/* Form */}
-        <form action={formAction} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label htmlFor="username" className="text-xs font-medium text-muted-foreground">
               Username

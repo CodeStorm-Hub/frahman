@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
 import Link from "next/link";
 import {
   useReactTable,
@@ -13,6 +13,7 @@ import {
 import { SortHeader } from "@/components/ui/sort-header";
 import { cn } from "@/lib/utils";
 import { formatTaka } from "@/lib/currency";
+import { CalendarDays, X } from "lucide-react";
 
 export type InvoiceRow = {
   id: string;
@@ -34,9 +35,21 @@ function formatDate(date: Date) {
 }
 
 export function InvoiceTable({ invoices }: { invoices: InvoiceRow[] }) {
-  const [sorting, setSorting] = useState<SortingState>([
-    { id: "date", desc: true },
-  ]);
+  const [sorting, setSorting] = useState<SortingState>([{ id: "date", desc: true }]);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  const filtered = useMemo(() => {
+    if (!fromDate && !toDate) return invoices;
+    const from = fromDate ? new Date(fromDate).getTime() : 0;
+    const to = toDate ? new Date(toDate).getTime() + 86_400_000 : Infinity;
+    return invoices.filter((inv) => {
+      const t = new Date(inv.invoiceDate).getTime();
+      return t >= from && t <= to;
+    });
+  }, [invoices, fromDate, toDate]);
+
+  const hasFilter = !!fromDate || !!toDate;
 
   const columns = useMemo<ColumnDef<InvoiceRow>[]>(
     () => [
@@ -74,11 +87,7 @@ export function InvoiceTable({ invoices }: { invoices: InvoiceRow[] }) {
         id: "items",
         accessorKey: "itemsSummary",
         enableSorting: false,
-        header: () => (
-          <th className="hidden px-3 py-3 text-left text-xs font-medium text-muted-foreground sm:table-cell">
-            Items
-          </th>
-        ),
+        header: () => "Items",
         cell: ({ row: { original: r } }) => (
           <td className="hidden px-3 py-3.5 text-xs text-muted-foreground sm:table-cell">
             <span className="line-clamp-1 max-w-[200px]">{r.itemsSummary}</span>
@@ -137,7 +146,7 @@ export function InvoiceTable({ invoices }: { invoices: InvoiceRow[] }) {
   );
 
   const table = useReactTable({
-    data: invoices,
+    data: filtered,
     columns,
     state: { sorting },
     onSortingChange: setSorting,
@@ -157,6 +166,42 @@ export function InvoiceTable({ invoices }: { invoices: InvoiceRow[] }) {
   }
 
   return (
+    <div>
+      {/* Date-range filter bar */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-border px-5 py-2.5">
+        <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        <span className="text-xs text-muted-foreground">Filter by date:</span>
+        <input
+          type="date"
+          value={fromDate}
+          onChange={(e) => setFromDate(e.target.value)}
+          className="rounded border border-border bg-muted/20 px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          aria-label="From date"
+        />
+        <span className="text-xs text-muted-foreground">to</span>
+        <input
+          type="date"
+          value={toDate}
+          min={fromDate}
+          onChange={(e) => setToDate(e.target.value)}
+          className="rounded border border-border bg-muted/20 px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          aria-label="To date"
+        />
+        {hasFilter && (
+          <button
+            onClick={() => { setFromDate(""); setToDate(""); }}
+            className="flex items-center gap-1 rounded border border-border/60 bg-muted/30 px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-3 w-3" /> Clear
+          </button>
+        )}
+        {hasFilter && (
+          <span className="ml-auto text-xs text-muted-foreground">
+            {filtered.length} of {invoices.length} shown
+          </span>
+        )}
+      </div>
+
     <div className="overflow-x-auto">
       <table className="w-full min-w-[600px] text-sm">
         <thead>
@@ -164,7 +209,11 @@ export function InvoiceTable({ invoices }: { invoices: InvoiceRow[] }) {
             {table.getHeaderGroups()[0].headers.map((header) => (
               <th
                 key={header.id}
-                className="px-3 py-3 text-left first:px-5"
+                className={cn(
+                  "px-3 py-3 text-left first:px-5",
+                  header.id === "items" && "hidden sm:table-cell",
+                  header.id === "date" && "hidden md:table-cell",
+                )}
               >
                 {flexRender(header.column.columnDef.header, header.getContext())}
               </th>
@@ -174,13 +223,16 @@ export function InvoiceTable({ invoices }: { invoices: InvoiceRow[] }) {
         <tbody className="divide-y divide-border">
           {table.getRowModel().rows.map((row) => (
             <tr key={row.id} className="transition-colors hover:bg-muted/20">
-              {row.getVisibleCells().map((cell) =>
-                flexRender(cell.column.columnDef.cell, cell.getContext()),
-              )}
+              {row.getVisibleCells().map((cell) => (
+                <Fragment key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </Fragment>
+              ))}
             </tr>
           ))}
         </tbody>
       </table>
+    </div>
     </div>
   );
 }

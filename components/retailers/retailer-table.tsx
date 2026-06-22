@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
 import Link from "next/link";
 import { Search, ShoppingCart } from "lucide-react";
 import {
@@ -203,7 +203,7 @@ export function RetailerTable({ retailers }: { retailers: RetailerRow[] }) {
       {
         id: "actions",
         enableSorting: false,
-        header: () => <th className="px-3 py-3" />,
+        header: () => null,
         cell: ({ row: { original: r } }) => (
           <td className="px-3 py-3.5">
             <div className="flex items-center justify-end gap-1.5">
@@ -277,9 +277,11 @@ export function RetailerTable({ retailers }: { retailers: RetailerRow[] }) {
             <tbody className="divide-y divide-border">
               {table.getRowModel().rows.map((row) => (
                 <tr key={row.id} className="transition-colors hover:bg-muted/20">
-                  {row.getVisibleCells().map((cell) =>
-                    flexRender(cell.column.columnDef.cell, cell.getContext()),
-                  )}
+                  {row.getVisibleCells().map((cell) => (
+                    <Fragment key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </Fragment>
+                  ))}
                 </tr>
               ))}
             </tbody>
