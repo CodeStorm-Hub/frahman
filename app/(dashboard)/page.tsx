@@ -11,6 +11,9 @@ import {
   BookOpen,
   Clock,
 } from "lucide-react";
+import { RevenueChart } from "@/components/dashboard/revenue-chart";
+import { StockChart } from "@/components/dashboard/stock-chart";
+import { AlertsBanner } from "@/components/dashboard/alerts-banner";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -26,6 +29,8 @@ export default async function DashboardPage() {
     cogsAgg,
     lossAgg,
     recentEntries,
+    revenueLines,
+    products,
   ] = await Promise.all([
     // Current inventory: sum currentBagsCount × landedCostPerBagPoisha
     prisma.inventoryBatch.findMany({
@@ -61,6 +66,17 @@ export default async function DashboardPage() {
         },
       },
     }),
+    // Monthly revenue for chart
+    prisma.ledgerLine.findMany({
+      where: { account: { code: "4100" }, creditPoisha: { gt: 0 } },
+      select: { creditPoisha: true, journalEntry: { select: { entryDate: true } } },
+      orderBy: { journalEntry: { entryDate: "asc" } },
+    }),
+    // Stock per product for chart
+    prisma.product.findMany({
+      select: { name: true, batches: { select: { currentBagsCount: true } } },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   // ── KPI calculations ──────────────────────────────────────────────────────
@@ -77,6 +93,22 @@ export default async function DashboardPage() {
     grossRevenuePoisha > 0
       ? ((netProfitPoisha / grossRevenuePoisha) * 100).toFixed(1)
       : "0.0";
+
+  // Build monthly revenue chart data
+  const byMonth = new Map<string, number>();
+  for (const line of revenueLines) {
+    const d = line.journalEntry?.entryDate;
+    if (!d) continue;
+    const key = new Date(d).toLocaleDateString("en-BD", { month: "short", year: "2-digit" });
+    byMonth.set(key, (byMonth.get(key) ?? 0) + line.creditPoisha);
+  }
+  const revenueChartData = Array.from(byMonth.entries()).map(([month, revenue]) => ({ month, revenue }));
+
+  // Build stock chart data
+  const stockChartData = products.map((p) => ({
+    name: p.name.split(" ")[0],
+    bags: p.batches.reduce((s, b) => s + b.currentBagsCount, 0),
+  }));
 
   const kpis = [
     {
@@ -122,6 +154,9 @@ export default async function DashboardPage() {
         </p>
       </div>
 
+      {/* Alerts */}
+      <AlertsBanner />
+
       {/* KPI grid: 2 cols on mobile, 4 on desktop */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
         {kpis.map((kpi) => {
@@ -146,6 +181,26 @@ export default async function DashboardPage() {
             </Card>
           );
         })}
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Card className="border-border bg-card">
+          <CardHeader className="pb-1">
+            <CardTitle className="text-sm font-semibold">Monthly Revenue</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <RevenueChart data={revenueChartData} />
+          </CardContent>
+        </Card>
+        <Card className="border-border bg-card">
+          <CardHeader className="pb-1">
+            <CardTitle className="text-sm font-semibold">Stock on Hand (bags)</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <StockChart data={stockChartData} />
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recent ledger activity */}
