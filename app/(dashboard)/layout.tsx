@@ -1,12 +1,17 @@
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { TopHeader } from "@/components/layout/top-header";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+  if (!session) redirect("/login");
+
   return (
     <div className="min-h-dvh bg-background">
       {/* Desktop: fixed left sidebar */}

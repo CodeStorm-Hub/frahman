@@ -7,6 +7,9 @@ import { navGroups, navItems } from "./nav-config";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { signOutAction } from "@/app/actions/auth";
+import { LogOut } from "lucide-react";
+import { CommandPalette } from "@/components/search/command-palette";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -26,6 +29,11 @@ export function AppSidebar() {
         <span className="hidden text-sm font-semibold tracking-tight text-sidebar-foreground lg:inline">
           Frahman
         </span>
+      </div>
+
+      {/* Search */}
+      <div className="shrink-0 border-b border-sidebar-border px-3 py-2.5">
+        <CommandPalette />
       </div>
 
       {/* Navigation */}

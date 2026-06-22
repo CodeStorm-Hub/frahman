@@ -1,8 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { navItems } from "./nav-config";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Search } from "lucide-react";
 
 export function TopHeader() {
   const pathname = usePathname();
@@ -12,6 +14,11 @@ export function TopHeader() {
         ? pathname === "/"
         : pathname === item.href || pathname.startsWith(item.href + "/")
     ) ?? navItems[0];
+
+  // Tap the search icon → trigger the command palette already mounted in sidebar
+  function openPalette() {
+    document.getElementById("cmd-palette-trigger")?.click();
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/90 px-4 backdrop-blur-md md:ml-16 lg:hidden">
@@ -26,6 +33,13 @@ export function TopHeader() {
           {current.description}
         </p>
       </div>
+      <button
+        onClick={openPalette}
+        aria-label="Open search"
+        className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+      >
+        <Search className="h-4 w-4" />
+      </button>
       <ThemeToggle />
     </header>
   );

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ShoppingCart, Receipt, CheckCircle2, Clock } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Receipt, CheckCircle2, Clock, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -87,8 +87,20 @@ export default async function RetailerDetailPage({
               retailerId={retailer.id}
               shopName={retailer.shopName}
               currentBalancePoisha={retailer.currentBalancePoisha}
+              unpaidInvoices={unpaidInvoices.map((i) => ({
+                id: i.id,
+                invoiceNo: i.invoiceNo,
+                totalAmountPoisha: i.totalAmountPoisha,
+              }))}
             />
           )}
+          <Link
+            href={`/retailers/${retailer.id}/statement`}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}
+          >
+            <FileText className="h-4 w-4" />
+            <span className="hidden sm:inline">Statement</span>
+          </Link>
           <Link
             href={`/sales/new?retailerId=${retailer.id}`}
             className={cn(buttonVariants({ size: "sm" }), "gap-1.5")}

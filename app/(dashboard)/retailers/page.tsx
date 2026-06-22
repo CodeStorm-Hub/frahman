@@ -6,6 +6,7 @@ import prisma from "@/lib/prisma";
 import { formatTaka } from "@/lib/currency";
 import { AddRetailerDialog } from "@/components/retailers/add-retailer-dialog";
 import { RetailerTable } from "@/components/retailers/retailer-table";
+import { RetailersCsvExport } from "@/components/retailers/retailers-csv-export";
 
 export const metadata: Metadata = { title: "Retailers — Frahman & Brothers" };
 
@@ -77,14 +78,17 @@ export default async function RetailersPage() {
 
   return (
     <div className="space-y-5 md:space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div className="hidden md:block">
           <h1 className="text-xl font-semibold text-foreground">Retailers</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Authorized B2B dealer directory &amp; credit accounts
           </p>
         </div>
-        <AddRetailerDialog />
+        <div className="ml-auto flex items-center gap-2">
+          <RetailersCsvExport retailers={retailers} />
+          <AddRetailerDialog />
+        </div>
       </div>
 
       {/* Stats */}
