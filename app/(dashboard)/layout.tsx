@@ -16,7 +16,7 @@ export default function DashboardLayout({
       <TopHeader />
 
       {/* Main scrollable content */}
-      <main className="flex min-h-dvh flex-col md:ml-60">
+      <main className="flex min-h-dvh flex-col md:ml-16 lg:ml-60">
         {/*
           pb-24 on mobile leaves clearance above the fixed bottom nav (h-16)
           md:pb-8 restores normal padding on desktop where bottom nav is hidden

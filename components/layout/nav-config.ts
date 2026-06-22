@@ -10,15 +10,21 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+export type NavGroup = "Overview" | "Sales" | "Inventory" | "Finance";
+
 export type NavItem = {
   label: string;
   href: string;
   icon: LucideIcon;
   shortLabel: string;
   description: string;
+  /** Section header the item is grouped under in the desktop/tablet sidebar */
+  group: NavGroup;
   /** When true, item appears in desktop sidebar only, not the mobile bottom tab bar */
   desktopOnly?: boolean;
 };
+
+export const navGroups: NavGroup[] = ["Overview", "Sales", "Inventory", "Finance"];
 
 export const navItems: NavItem[] = [
   {
@@ -27,20 +33,7 @@ export const navItems: NavItem[] = [
     icon: LayoutDashboard,
     shortLabel: "Home",
     description: "Overview & KPIs",
-  },
-  {
-    label: "Procurement",
-    href: "/procurement",
-    icon: Package,
-    shortLabel: "Procure",
-    description: "Government Inflow",
-  },
-  {
-    label: "Retailers",
-    href: "/retailers",
-    icon: Store,
-    shortLabel: "Retailers",
-    description: "B2B Credit Accounts",
+    group: "Overview",
   },
   {
     label: "New Sale",
@@ -48,6 +41,7 @@ export const navItems: NavItem[] = [
     icon: ShoppingCart,
     shortLabel: "Sale",
     description: "Create Invoice",
+    group: "Sales",
   },
   {
     label: "Invoices",
@@ -55,6 +49,23 @@ export const navItems: NavItem[] = [
     icon: Receipt,
     shortLabel: "Invoices",
     description: "Sales History",
+    group: "Sales",
+  },
+  {
+    label: "Retailers",
+    href: "/retailers",
+    icon: Store,
+    shortLabel: "Retailers",
+    description: "B2B Credit Accounts",
+    group: "Sales",
+  },
+  {
+    label: "Procurement",
+    href: "/procurement",
+    icon: Package,
+    shortLabel: "Procure",
+    description: "Government Inflow",
+    group: "Inventory",
   },
   {
     label: "Products",
@@ -62,6 +73,7 @@ export const navItems: NavItem[] = [
     icon: FlaskConical,
     shortLabel: "Products",
     description: "Fertilizer Catalogue",
+    group: "Inventory",
     desktopOnly: true,
   },
   {
@@ -70,6 +82,7 @@ export const navItems: NavItem[] = [
     icon: BarChart3,
     shortLabel: "P&L",
     description: "Profit & Loss",
+    group: "Finance",
     desktopOnly: true,
   },
   {
@@ -78,6 +91,7 @@ export const navItems: NavItem[] = [
     icon: ScrollText,
     shortLabel: "Ledger",
     description: "General Ledger",
+    group: "Finance",
     desktopOnly: true,
   },
 ];
