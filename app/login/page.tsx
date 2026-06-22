@@ -29,7 +29,7 @@ export default function LoginPage() {
       } else {
         // Session cookie is now set — refresh server components then navigate
         router.refresh();
-        router.push("/");
+        router.push("/dashboard");
       }
     });
   }

@@ -139,6 +139,33 @@
   }
 }
 
+/* Public portfolio landing page — independent palette, scoped so it never
+   leaks into the authenticated dashboard's grayscale theme. */
+.portfolio-theme {
+  --p-bg: oklch(0.99 0.006 95);
+  --p-bg-soft: oklch(0.965 0.012 95);
+  --p-ink: oklch(0.19 0.025 145);
+  --p-ink-soft: oklch(0.42 0.03 145);
+  --p-forest: oklch(0.32 0.085 152);
+  --p-forest-2: oklch(0.46 0.1 152);
+  --p-gold: oklch(0.78 0.135 75);
+  --p-gold-2: oklch(0.68 0.16 60);
+  --p-card: oklch(1 0 0);
+  --p-border: oklch(0.19 0.025 145 / 10%);
+}
+.dark .portfolio-theme {
+  --p-bg: oklch(0.155 0.018 152);
+  --p-bg-soft: oklch(0.19 0.022 152);
+  --p-ink: oklch(0.96 0.01 95);
+  --p-ink-soft: oklch(0.75 0.02 95);
+  --p-forest: oklch(0.62 0.12 152);
+  --p-forest-2: oklch(0.42 0.095 152);
+  --p-gold: oklch(0.8 0.14 75);
+  --p-gold-2: oklch(0.7 0.165 60);
+  --p-card: oklch(0.205 0.02 152);
+  --p-border: oklch(0.96 0.01 95 / 10%);
+}
+
 @media print {
   /* Hide navigation shell */
   aside, nav, header, footer, .print\:hidden { display: none !important; }

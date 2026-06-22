@@ -26,7 +26,7 @@ export const navGroups: NavGroup[] = ["Overview", "Sales", "Inventory", "Finance
 export const navItems: NavItem[] = [
   {
     label: "Dashboard",
-    href: "/",
+    href: "/dashboard",
     icon: LayoutDashboard,
     shortLabel: "Home",
     description: "Overview & KPIs",
