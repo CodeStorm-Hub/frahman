@@ -26,7 +26,7 @@ const stats = [
 
 export function StatsBar() {
   return (
-    <section className="border-y border-[var(--p-border)] bg-[var(--p-bg-soft)]">
+    <section className="p-glass border-y">
       <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-5 py-12 md:grid-cols-4 md:px-8">
         {stats.map((s, i) => (
           <Reveal key={s.label} delay={i * 0.08}>
@@ -86,7 +86,7 @@ export function About() {
         {pillars.map((p, i) => (
           <Reveal key={p.title} delay={i * 0.1}>
             <TiltCard className="h-full">
-              <div className="h-full rounded-2xl border border-[var(--p-border)] bg-[var(--p-card)] p-6 shadow-sm">
+              <div className="p-glass h-full rounded-2xl p-6 shadow-lg shadow-black/20">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--p-forest)]/10">
                   <p.icon className="h-5 w-5 text-[var(--p-forest)]" />
                 </div>
@@ -123,10 +123,7 @@ const steps = [
 
 export function SupplyChain() {
   return (
-    <section
-      id="supply-chain"
-      className="bg-[var(--p-forest)] py-24 text-white"
-    >
+    <section id="supply-chain" className="py-24 text-white">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <Reveal>
           <span className="text-xs font-semibold uppercase tracking-widest text-[var(--p-gold)]">
@@ -217,7 +214,7 @@ export function Products() {
         {products.map((p, i) => (
           <Reveal key={p.name} delay={i * 0.08}>
             <TiltCard className="h-full">
-              <div className="flex h-full flex-col justify-between rounded-2xl border border-[var(--p-border)] bg-[var(--p-card)] p-6 shadow-sm">
+              <div className="p-glass flex h-full flex-col justify-between rounded-2xl p-6 shadow-lg shadow-black/20">
                 <div>
                   <span className="inline-flex rounded-full bg-[var(--p-gold)]/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--p-gold-2)]">
                     {p.tag}
@@ -249,7 +246,7 @@ const team = [
 
 export function Team() {
   return (
-    <section id="team" className="bg-[var(--p-bg-soft)] py-24">
+    <section id="team" className="p-glass border-y py-24">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <Reveal>
           <span className="text-xs font-semibold uppercase tracking-widest text-[var(--p-gold-2)]">
@@ -263,7 +260,7 @@ export function Team() {
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {team.map((m, i) => (
             <Reveal key={m.name} delay={i * 0.08}>
-              <div className="rounded-2xl border border-[var(--p-border)] bg-[var(--p-card)] p-6 text-center shadow-sm">
+              <div className="p-glass rounded-2xl p-6 text-center shadow-lg shadow-black/20">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--p-forest)]/10 text-lg font-semibold text-[var(--p-forest)]">
                   {m.name
                     .replace("Late ", "")
@@ -288,7 +285,7 @@ export function Team() {
 export function Contact() {
   return (
     <section id="contact" className="mx-auto max-w-6xl px-5 py-24 md:px-8">
-      <div className="grid gap-10 rounded-3xl border border-[var(--p-border)] bg-[var(--p-card)] p-8 shadow-sm md:grid-cols-2 md:p-14">
+      <div className="p-glass grid gap-10 rounded-3xl p-8 shadow-2xl shadow-black/30 md:grid-cols-2 md:p-14">
         <Reveal>
           <span className="text-xs font-semibold uppercase tracking-widest text-[var(--p-gold-2)]">
             Get In Touch
@@ -329,23 +326,23 @@ export function Contact() {
               <input
                 type="text"
                 placeholder="First name"
-                className="rounded-xl border border-[var(--p-border)] bg-[var(--p-bg)] px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
+                className="rounded-xl border border-[var(--p-glass-border)] bg-white/5 px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
               />
               <input
                 type="text"
                 placeholder="Last name"
-                className="rounded-xl border border-[var(--p-border)] bg-[var(--p-bg)] px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
+                className="rounded-xl border border-[var(--p-glass-border)] bg-white/5 px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
               />
             </div>
             <input
               type="email"
               placeholder="Email address"
-              className="w-full rounded-xl border border-[var(--p-border)] bg-[var(--p-bg)] px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
+              className="w-full rounded-xl border border-[var(--p-glass-border)] bg-white/5 px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
             />
             <textarea
               placeholder="How can we help?"
               rows={4}
-              className="w-full rounded-xl border border-[var(--p-border)] bg-[var(--p-bg)] px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
+              className="w-full rounded-xl border border-[var(--p-glass-border)] bg-white/5 px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
             />
             <button
               type="submit"

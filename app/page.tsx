@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CanvasMount } from "@/components/portfolio3d/canvas-mount";
 import { PortfolioNav } from "@/components/portfolio/nav";
 import { Hero } from "@/components/portfolio/hero";
 import {
@@ -19,9 +20,10 @@ export const metadata: Metadata = {
 
 export default function PortfolioPage() {
   return (
-    <div className="portfolio-theme min-h-dvh bg-[var(--p-bg)] text-[var(--p-ink)]">
+    <div className="portfolio-theme relative min-h-dvh text-[var(--p-ink)]">
+      <CanvasMount />
       <PortfolioNav />
-      <main>
+      <main className="relative">
         <Hero />
         <StatsBar />
         <About />
