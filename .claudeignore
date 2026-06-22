@@ -17,3 +17,7 @@ generated/
 *.pem
 
 .vercel
+
+
+/playwright-image
+/test-results/*
