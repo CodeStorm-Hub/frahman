@@ -7,6 +7,9 @@ import { navItems } from "./nav-config";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { signOutAction } from "@/app/actions/auth";
+import { LogOut } from "lucide-react";
+import { CommandPalette } from "@/components/search/command-palette";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -21,6 +24,11 @@ export function AppSidebar() {
         <span className="text-sm font-semibold tracking-tight text-sidebar-foreground">
           Frahman
         </span>
+      </div>
+
+      {/* Search */}
+      <div className="shrink-0 border-b border-sidebar-border px-3 py-2.5">
+        <CommandPalette />
       </div>
 
       {/* Navigation */}
@@ -77,7 +85,18 @@ export function AppSidebar() {
       <div className="shrink-0 border-t border-sidebar-border px-5 py-3">
         <div className="flex items-center justify-between">
           <p className="text-[11px] text-sidebar-foreground/25">Frahman v1.0</p>
-          <ThemeToggle className="h-7 w-7" />
+          <div className="flex items-center gap-1">
+            <ThemeToggle className="h-7 w-7" />
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                title="Sign out"
+                className="flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/30 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </aside>

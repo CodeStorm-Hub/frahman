@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import prisma from "@/lib/prisma";
 import { formatTaka as _formatTaka } from "@/lib/currency";
+import { LedgerCsvExport } from "@/components/ledgers/ledger-csv-export";
 
 export const metadata: Metadata = { title: "General Ledger — Frahman & Brothers" };
 
@@ -85,8 +86,9 @@ export default async function LedgersPage() {
       </div>
 
       <Card className="border-border bg-card">
-        <CardHeader className="pb-2">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-semibold">Journal Entries</CardTitle>
+          <LedgerCsvExport rows={rows} />
         </CardHeader>
         <CardContent className="p-0">
           {rows.length === 0 ? (

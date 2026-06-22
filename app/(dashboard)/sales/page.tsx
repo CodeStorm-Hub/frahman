@@ -6,6 +6,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import prisma from "@/lib/prisma";
 import { formatTaka } from "@/lib/currency";
+import { SalesCsvExport } from "@/components/sales/sales-csv-export";
+import { InvoiceTable } from "@/components/sales/invoice-table";
 
 export const metadata: Metadata = { title: "Invoices — Frahman & Brothers" };
 
@@ -110,90 +112,32 @@ export default async function SalesHistoryPage() {
 
       {/* Invoice table */}
       <Card className="border-border bg-card">
-        <CardHeader className="pb-2">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-semibold">All Invoices</CardTitle>
+          <SalesCsvExport
+            invoices={invoices.map((inv) => ({
+              invoiceNo: inv.invoiceNo,
+              invoiceDate: inv.invoiceDate,
+              retailerName: inv.retailer.shopName,
+              totalAmountPoisha: inv.totalAmountPoisha,
+              isPaid: inv.isPaid,
+              itemsSummary: inv.lines.map((l) => `${l.bagsCount} ${l.product.name}`).join(", "),
+            }))}
+          />
         </CardHeader>
         <CardContent className="p-0">
-          {invoices.length === 0 ? (
-            <div className="px-5 py-10 text-center text-sm text-muted-foreground">
-              No invoices yet.{" "}
-              <Link href="/sales/new" className="text-foreground underline underline-offset-2">
-                Create your first sale.
-              </Link>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px] text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/30">
-                    <th className="px-5 py-3 text-left text-xs font-medium text-muted-foreground">
-                      Invoice No.
-                    </th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground">
-                      Retailer
-                    </th>
-                    <th className="hidden px-3 py-3 text-left text-xs font-medium text-muted-foreground sm:table-cell">
-                      Items
-                    </th>
-                    <th className="px-3 py-3 text-right text-xs font-medium text-muted-foreground">
-                      Amount
-                    </th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground">
-                      Status
-                    </th>
-                    <th className="hidden px-5 py-3 text-left text-xs font-medium text-muted-foreground md:table-cell">
-                      Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {invoices.map((inv) => {
-                    const itemsSummary = inv.lines
-                      .map((l) => `${l.bagsCount} ${l.product.name}`)
-                      .join(", ");
-                    return (
-                      <tr key={inv.id} className="transition-colors hover:bg-muted/20">
-                        <td className="px-5 py-3.5 font-mono text-xs font-medium text-foreground">
-                          <Link href={`/sales/${inv.id}`} className="hover:underline underline-offset-2">
-                            {inv.invoiceNo}
-                          </Link>
-                        </td>
-                        <td className="px-3 py-3.5">
-                          <p className="font-medium text-foreground">
-                            {inv.retailer.shopName}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {inv.retailer.proprietorName}
-                          </p>
-                        </td>
-                        <td className="hidden px-3 py-3.5 text-xs text-muted-foreground sm:table-cell">
-                          <span className="line-clamp-1 max-w-[200px]">{itemsSummary}</span>
-                        </td>
-                        <td className="px-3 py-3.5 text-right tabular-nums font-semibold text-foreground">
-                          {formatTaka(inv.totalAmountPoisha)}
-                        </td>
-                        <td className="px-3 py-3.5">
-                          <span
-                            className={cn(
-                              "inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium",
-                              inv.isPaid
-                                ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-400"
-                                : "border-amber-500/25 bg-amber-500/10 text-amber-400",
-                            )}
-                          >
-                            {inv.isPaid ? "Settled" : "Outstanding"}
-                          </span>
-                        </td>
-                        <td className="hidden px-5 py-3.5 text-xs text-muted-foreground md:table-cell">
-                          {formatDate(inv.invoiceDate)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <InvoiceTable
+            invoices={invoices.map((inv) => ({
+              id: inv.id,
+              invoiceNo: inv.invoiceNo,
+              invoiceDate: inv.invoiceDate,
+              retailerName: inv.retailer.shopName,
+              proprietorName: inv.retailer.proprietorName,
+              itemsSummary: inv.lines.map((l) => `${l.bagsCount} ${l.product.name}`).join(", "),
+              totalAmountPoisha: inv.totalAmountPoisha,
+              isPaid: inv.isPaid,
+            }))}
+          />
         </CardContent>
       </Card>
     </div>
