@@ -10,23 +10,10 @@ export function Hero() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
 
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, 120]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, -80]);
-  const rotate = useTransform(scrollYProgress, [0, 1], [0, 25]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
   return (
     <div id="top" ref={ref} className="relative overflow-hidden pt-28 pb-16 md:pt-40 md:pb-28">
-      {/* Floating 3D-ish ambient shapes */}
-      <motion.div
-        style={{ y: y1, rotate }}
-        className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-[40%] bg-[var(--p-forest)]/15 blur-2xl [transform-style:preserve-3d] md:h-96 md:w-96"
-      />
-      <motion.div
-        style={{ y: y2 }}
-        className="pointer-events-none absolute -right-16 top-40 h-64 w-64 rounded-full bg-[var(--p-gold)]/25 blur-2xl md:h-80 md:w-80"
-      />
-
       <motion.div style={{ opacity }} className="relative mx-auto max-w-6xl px-5 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: 16 }}

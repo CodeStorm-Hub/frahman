@@ -130,6 +130,12 @@
 }
 
 @layer utilities {
+  .p-glass {
+    background-color: var(--p-glass);
+    border: 1px solid var(--p-glass-border);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -139,21 +145,10 @@
   }
 }
 
-/* Public portfolio landing page — independent palette, scoped so it never
-   leaks into the authenticated dashboard's grayscale theme. */
+/* Public 3D portfolio landing page — fixed cinematic dark palette, independent
+   of the dashboard's grayscale theme and of the light/dark toggle (the WebGL
+   backdrop is designed for one mood, like most immersive 3D sites). */
 .portfolio-theme {
-  --p-bg: oklch(0.99 0.006 95);
-  --p-bg-soft: oklch(0.965 0.012 95);
-  --p-ink: oklch(0.19 0.025 145);
-  --p-ink-soft: oklch(0.42 0.03 145);
-  --p-forest: oklch(0.32 0.085 152);
-  --p-forest-2: oklch(0.46 0.1 152);
-  --p-gold: oklch(0.78 0.135 75);
-  --p-gold-2: oklch(0.68 0.16 60);
-  --p-card: oklch(1 0 0);
-  --p-border: oklch(0.19 0.025 145 / 10%);
-}
-.dark .portfolio-theme {
   --p-bg: oklch(0.155 0.018 152);
   --p-bg-soft: oklch(0.19 0.022 152);
   --p-ink: oklch(0.96 0.01 95);
@@ -164,6 +159,10 @@
   --p-gold-2: oklch(0.7 0.165 60);
   --p-card: oklch(0.205 0.02 152);
   --p-border: oklch(0.96 0.01 95 / 10%);
+  /* Glass surfaces float over the WebGL canvas */
+  --p-glass: oklch(0.205 0.02 152 / 55%);
+  --p-glass-soft: oklch(0.205 0.02 152 / 35%);
+  --p-glass-border: oklch(0.96 0.01 95 / 12%);
 }
 
 @media print {
