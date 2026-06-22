@@ -580,7 +580,7 @@ function Truck({ curve, progressRef }: { curve: THREE.CatmullRomCurve3; progress
     const pos = curve.getPointAt(t);
     const tangent = curve.getTangentAt(t);
     ref.current.position.set(pos.x, 0.18, pos.z);
-    ref.current.rotation.y = Math.atan2(tangent.x, tangent.z);
+    ref.current.rotation.y = Math.atan2(tangent.x, tangent.z) + Math.PI;
     wheelRefs.current.forEach((w) => {
       if (w) w.rotation.x += delta * 6;
     });
