@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
+import { Html } from "@react-three/drei";
 import * as THREE from "three";
 
 const ROUTE_POINTS: [number, number][] = [
@@ -229,15 +230,28 @@ function BushTree({ position, scale = 1 }: { position: [number, number, number];
   );
 }
 
-function Window({ position, lit = true }: { position: [number, number, number]; lit?: boolean }) {
+function Window({
+  position,
+  lit = true,
+  size = [0.22, 0.26],
+  shutters = false,
+}: {
+  position: [number, number, number];
+  lit?: boolean;
+  size?: [number, number];
+  shutters?: boolean;
+}) {
+  const [w, h] = size;
   return (
     <group position={position}>
+      {/* Frame */}
       <mesh>
-        <boxGeometry args={[0.22, 0.26, 0.04]} />
+        <boxGeometry args={[w, h, 0.04]} />
         <meshStandardMaterial color="#2a2017" flatShading />
       </mesh>
-      <mesh position={[0, 0, 0.025]}>
-        <boxGeometry args={[0.17, 0.21, 0.02]} />
+      {/* Glass */}
+      <mesh position={[0, 0, 0.022]}>
+        <boxGeometry args={[w - 0.05, h - 0.05, 0.015]} />
         <meshStandardMaterial
           color={lit ? "#ffe5a0" : "#bcd6dc"}
           emissive={lit ? "#ffb347" : "#000000"}
@@ -245,24 +259,80 @@ function Window({ position, lit = true }: { position: [number, number, number]; 
           flatShading
         />
       </mesh>
+      {/* Mullion cross */}
+      <mesh position={[0, 0, 0.03]}>
+        <boxGeometry args={[w - 0.04, 0.015, 0.01]} />
+        <meshStandardMaterial color="#1d160f" flatShading />
+      </mesh>
+      <mesh position={[0, 0, 0.03]}>
+        <boxGeometry args={[0.015, h - 0.04, 0.01]} />
+        <meshStandardMaterial color="#1d160f" flatShading />
+      </mesh>
+      {/* Sill */}
+      <mesh position={[0, -h / 2 - 0.02, 0.05]}>
+        <boxGeometry args={[w + 0.08, 0.03, 0.09]} />
+        <meshStandardMaterial color="#4a3a26" flatShading />
+      </mesh>
+      {/* Shutters */}
+      {shutters && (
+        <>
+          <mesh position={[-w / 2 - 0.05, 0, 0.04]} rotation-y={0.5}>
+            <boxGeometry args={[0.07, h + 0.04, 0.02]} />
+            <meshStandardMaterial color="#3f7a52" flatShading />
+          </mesh>
+          <mesh position={[w / 2 + 0.05, 0, 0.04]} rotation-y={-0.5}>
+            <boxGeometry args={[0.07, h + 0.04, 0.02]} />
+            <meshStandardMaterial color="#3f7a52" flatShading />
+          </mesh>
+        </>
+      )}
     </group>
   );
 }
 
-function GableRoof({
+function ShutterDoor({
+  position,
+  width = 0.5,
+  height = 0.7,
+  slats = 7,
+}: {
+  position: [number, number, number];
+  width?: number;
+  height?: number;
+  slats?: number;
+}) {
+  const slatH = height / slats;
+  return (
+    <group position={position}>
+      <mesh position={[0, height / 2, -0.01]}>
+        <boxGeometry args={[width + 0.06, height + 0.06, 0.02]} />
+        <meshStandardMaterial color="#23190f" flatShading />
+      </mesh>
+      {Array.from({ length: slats }).map((_, i) => (
+        <mesh key={i} position={[0, slatH * (i + 0.5), 0]}>
+          <boxGeometry args={[width, slatH - 0.01, 0.04]} />
+          <meshStandardMaterial color={i % 2 === 0 ? "#8a8f93" : "#777b7e"} flatShading metalness={0.3} roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/** Corrugated tin gable roof: extruded gable cross-section + ridge cap + corrugation ribs + eave trim. */
+function CorrugatedRoof({
   width,
   depth,
   height,
   y,
-  color,
+  color = "#9aa7ad",
 }: {
   width: number;
   depth: number;
   height: number;
   y: number;
-  color: string;
+  color?: string;
 }) {
-  const overhang = 0.18;
+  const overhang = 0.2;
   const shape = useMemo(() => {
     const s = new THREE.Shape();
     s.moveTo(-width / 2 - overhang, 0);
@@ -277,110 +347,319 @@ function GableRoof({
     [shape, depth],
   );
 
+  const slope = Math.sqrt((width / 2 + overhang) ** 2 + height ** 2);
+
   return (
     <group position={[0, y, -depth / 2 - overhang / 2]}>
-      <mesh geometry={geo} castShadow>
-        <meshStandardMaterial color={color} flatShading />
+      <mesh geometry={geo} castShadow receiveShadow>
+        <meshStandardMaterial color={color} flatShading metalness={0.35} roughness={0.55} />
       </mesh>
-      <mesh position={[0, height * 0.55, depth / 2 + overhang]} rotation-x={Math.PI / 2}>
-        <boxGeometry args={[0.05, 0.05, height * 1.05]} />
-        <meshStandardMaterial color="#2c2117" flatShading />
+      {/* Ridge cap */}
+      <mesh position={[0, height + 0.02, 0]}>
+        <boxGeometry args={[0.16, 0.07, depth + overhang * 2 + 0.05]} />
+        <meshStandardMaterial color="#5c6b70" flatShading metalness={0.4} roughness={0.5} />
       </mesh>
+      {/* Rake (bargeboard) trim along each slope edge, front gable face */}
+      {[-1, 1].map((side) => (
+        <mesh
+          key={side}
+          position={[(side * (width / 2 + overhang)) / 2, height / 2, depth / 2 + overhang + 0.005]}
+          rotation-z={side > 0 ? -Math.atan2(height, width / 2 + overhang) : Math.atan2(height, width / 2 + overhang)}
+        >
+          <boxGeometry args={[slope, 0.06, 0.05]} />
+          <meshStandardMaterial color="#2c2117" flatShading />
+        </mesh>
+      ))}
     </group>
   );
 }
 
-function Building({
-  position,
-  size = [2, 1.4, 1.6],
-  color = "#caa14a",
-  roofColor = "#7a5a2a",
-  windows = 2,
-  hasDoor = true,
-  trimColor,
-  sign,
-}: {
-  position: [number, number, number];
-  size?: [number, number, number];
-  color?: string;
-  roofColor?: string;
-  windows?: number;
-  hasDoor?: boolean;
-  trimColor?: string;
-  sign?: { color: string; text?: string };
-}) {
-  const [w, h, d] = size;
-  const trim = trimColor ?? "#2c2117";
-  const windowYs = h * 0.62;
-  const winXs = useMemo(() => {
-    const arr: number[] = [];
-    for (let i = 0; i < windows; i++) {
-      arr.push((i - (windows - 1) / 2) * (w / (windows + 0.4)));
-    }
-    return arr;
-  }, [windows, w]);
-
+/** A government depot — boxy hall, boundary wall with gate posts, and a flagpole. */
+function DepotBuilding({ position }: { position: [number, number, number] }) {
+  const w = 2.4;
+  const h = 1.25;
+  const d = 1.7;
   return (
     <group position={position}>
-      {/* Plinth / foundation */}
-      <mesh position={[0, 0.06, 0]} castShadow receiveShadow>
-        <boxGeometry args={[w + 0.1, 0.12, d + 0.1]} />
+      <mesh position={[0, 0.07, 0]} castShadow receiveShadow>
+        <boxGeometry args={[w + 0.12, 0.14, d + 0.12]} />
         <meshStandardMaterial color="#3a3026" flatShading />
       </mesh>
-
-      {/* Walls */}
-      <mesh position={[0, h / 2 + 0.1, 0]} castShadow receiveShadow>
+      <mesh position={[0, h / 2 + 0.14, 0]} castShadow receiveShadow>
         <boxGeometry args={[w, h, d]} />
-        <meshStandardMaterial color={color} flatShading />
+        <meshStandardMaterial color="#8fc89a" flatShading />
       </mesh>
-
-      {/* Corner trim posts */}
+      {/* Painted base band */}
+      <mesh position={[0, 0.32, 0]}>
+        <boxGeometry args={[w + 0.01, 0.22, d + 0.01]} />
+        <meshStandardMaterial color="#3f7a52" flatShading />
+      </mesh>
       {[
         [-w / 2, -d / 2],
         [w / 2, -d / 2],
         [-w / 2, d / 2],
         [w / 2, d / 2],
       ].map(([x, z], i) => (
-        <mesh key={i} position={[x, h / 2 + 0.1, z]}>
-          <boxGeometry args={[0.07, h, 0.07]} />
-          <meshStandardMaterial color={trim} flatShading />
+        <mesh key={i} position={[x, h / 2 + 0.14, z]}>
+          <boxGeometry args={[0.08, h, 0.08]} />
+          <meshStandardMaterial color="#2c4730" flatShading />
+        </mesh>
+      ))}
+      <Window position={[-0.65, h * 0.62, d / 2 + 0.02]} lit shutters />
+      <Window position={[0.65, h * 0.62, d / 2 + 0.02]} lit={false} shutters />
+      <ShutterDoor position={[0, 0.14, d / 2 + 0.02]} width={0.5} height={0.78} />
+      <CorrugatedRoof width={w} depth={d} height={0.62} y={h + 0.14} color="#9aa7ad" />
+
+      {/* Sign above door */}
+      <group position={[0, h + 0.08, d / 2 + 0.06]}>
+        <mesh>
+          <boxGeometry args={[w * 0.72, 0.24, 0.04]} />
+          <meshStandardMaterial color="#3f7a52" flatShading />
+        </mesh>
+        <mesh position={[0, 0, 0.025]}>
+          <boxGeometry args={[w * 0.6, 0.13, 0.01]} />
+          <meshStandardMaterial color="#fdf6e3" flatShading />
+        </mesh>
+      </group>
+
+      {/* Boundary low wall with gate posts */}
+      <mesh position={[0, 0.18, d / 2 + 1.05]}>
+        <boxGeometry args={[w + 1, 0.32, 0.08]} />
+        <meshStandardMaterial color="#5a4a36" flatShading />
+      </mesh>
+      {[-0.55, 0.55].map((x, i) => (
+        <mesh key={i} position={[x, 0.4, d / 2 + 1.05]} castShadow>
+          <boxGeometry args={[0.14, 0.76, 0.14]} />
+          <meshStandardMaterial color="#caa14a" flatShading />
         </mesh>
       ))}
 
-      {/* Windows on front face */}
-      {winXs.map((x, i) => (
-        <Window key={i} position={[x, windowYs, d / 2 + 0.02]} lit={i % 2 === 0} />
+      {/* Flagpole + pennant */}
+      <group position={[w / 2 - 0.3, h + 0.14, -d / 2 + 0.3]}>
+        <mesh position={[0, 0.4, 0]} castShadow>
+          <cylinderGeometry args={[0.018, 0.018, 0.8, 6]} />
+          <meshStandardMaterial color="#d8d8d0" flatShading />
+        </mesh>
+        <mesh position={[0.13, 0.68, 0]} rotation-z={-Math.PI / 2}>
+          <coneGeometry args={[0.13, 0.26, 4]} />
+          <meshStandardMaterial color="#caa14a" flatShading />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+/** Climate-controlled warehouse — large gable hall, loading dock + ramp, roof water tank, vent strip. */
+function WarehouseBuilding({ position }: { position: [number, number, number] }) {
+  const w = 3.2;
+  const h = 1.65;
+  const d = 2.1;
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.07, 0]} castShadow receiveShadow>
+        <boxGeometry args={[w + 0.12, 0.14, d + 0.12]} />
+        <meshStandardMaterial color="#3a3026" flatShading />
+      </mesh>
+      <mesh position={[0, h / 2 + 0.14, 0]} castShadow receiveShadow>
+        <boxGeometry args={[w, h, d]} />
+        <meshStandardMaterial color="#d3ad57" flatShading />
+      </mesh>
+      {[
+        [-w / 2, -d / 2],
+        [w / 2, -d / 2],
+        [-w / 2, d / 2],
+        [w / 2, d / 2],
+      ].map(([x, z], i) => (
+        <mesh key={i} position={[x, h / 2 + 0.14, z]}>
+          <boxGeometry args={[0.09, h, 0.09]} />
+          <meshStandardMaterial color="#5a4022" flatShading />
+        </mesh>
       ))}
+      <Window position={[-1.05, h * 0.68, d / 2 + 0.02]} lit shutters={false} size={[0.26, 0.3]} />
+      <Window position={[0, h * 0.68, d / 2 + 0.02]} lit={false} shutters={false} size={[0.26, 0.3]} />
+      <Window position={[1.05, h * 0.68, d / 2 + 0.02]} lit shutters={false} size={[0.26, 0.3]} />
 
-      {/* Door */}
-      {hasDoor && (
-        <group position={[0, 0.1, d / 2 + 0.02]}>
-          <mesh position={[0, 0.32, 0]}>
-            <boxGeometry args={[0.36, 0.64, 0.05]} />
-            <meshStandardMaterial color={trim} flatShading />
-          </mesh>
-          <mesh position={[0.1, 0.32, 0.03]}>
-            <sphereGeometry args={[0.018, 6, 6]} />
-            <meshStandardMaterial color="#e7c97a" metalness={0.6} roughness={0.4} />
-          </mesh>
-        </group>
-      )}
+      {/* Loading dock platform + ramp + roller door */}
+      <mesh position={[-0.55, 0.32, d / 2 + 0.35]} castShadow receiveShadow>
+        <boxGeometry args={[1.3, 0.36, 0.7]} />
+        <meshStandardMaterial color="#5a5248" flatShading />
+      </mesh>
+      <mesh position={[-0.55, 0.16, d / 2 + 0.85]} rotation-x={-0.32} castShadow>
+        <boxGeometry args={[1.3, 0.06, 0.6]} />
+        <meshStandardMaterial color="#454039" flatShading />
+      </mesh>
+      <ShutterDoor position={[-0.55, 0.5, d / 2 + 0.02]} width={1.0} height={0.95} slats={9} />
 
-      <GableRoof width={w} depth={d} height={Math.max(0.5, h * 0.4)} y={h + 0.1} color={roofColor} />
+      <CorrugatedRoof width={w} depth={d} height={0.78} y={h + 0.14} color="#9aa7ad" />
+      {/* Roof vent strip along ridge */}
+      <mesh position={[0, h + 0.14 + 0.78 + 0.1, 0]}>
+        <boxGeometry args={[w * 0.5, 0.16, 0.3]} />
+        <meshStandardMaterial color="#8a979d" flatShading metalness={0.3} roughness={0.6} />
+      </mesh>
 
-      {/* Shop sign */}
-      {sign && (
-        <group position={[0, h + 0.05, d / 2 + 0.05]}>
-          <mesh>
-            <boxGeometry args={[w * 0.7, 0.22, 0.04]} />
-            <meshStandardMaterial color={sign.color} flatShading />
+      {/* Rooftop water tank on stilts */}
+      <group position={[w / 2 - 0.5, h + 0.14, -d / 2 + 0.45]}>
+        {[
+          [-0.18, -0.18],
+          [0.18, -0.18],
+          [-0.18, 0.18],
+          [0.18, 0.18],
+        ].map(([x, z], i) => (
+          <mesh key={i} position={[x, 0.18, z]}>
+            <cylinderGeometry args={[0.02, 0.02, 0.36, 6]} />
+            <meshStandardMaterial color="#6b6b6b" flatShading />
           </mesh>
-          <mesh position={[0, 0, 0.025]}>
-            <boxGeometry args={[w * 0.58, 0.12, 0.01]} />
-            <meshStandardMaterial color="#fdf6e3" flatShading />
-          </mesh>
-        </group>
-      )}
+        ))}
+        <mesh position={[0, 0.5, 0]} castShadow>
+          <cylinderGeometry args={[0.3, 0.3, 0.4, 12]} />
+          <meshStandardMaterial color="#bcc4c8" flatShading metalness={0.2} roughness={0.6} />
+        </mesh>
+        <mesh position={[0, 0.73, 0]}>
+          <coneGeometry args={[0.32, 0.14, 12]} />
+          <meshStandardMaterial color="#9aa7ad" flatShading />
+        </mesh>
+      </group>
+
+      {/* Sign */}
+      <group position={[0.5, h + 0.08, d / 2 + 0.06]}>
+        <mesh>
+          <boxGeometry args={[1.5, 0.26, 0.04]} />
+          <meshStandardMaterial color="#caa14a" flatShading />
+        </mesh>
+        <mesh position={[0, 0, 0.025]}>
+          <boxGeometry args={[1.3, 0.14, 0.01]} />
+          <meshStandardMaterial color="#2c2117" flatShading />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+/** A single retail shopfront — roller shutter, hanging sign, awning support post. Used 3x in a row. */
+function RetailShop({
+  position,
+  color,
+}: {
+  position: [number, number, number];
+  color: string;
+}) {
+  const w = 1.05;
+  const h = 1.05;
+  const d = 1.0;
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.06, 0]} castShadow receiveShadow>
+        <boxGeometry args={[w + 0.08, 0.12, d + 0.08]} />
+        <meshStandardMaterial color="#3a3026" flatShading />
+      </mesh>
+      <mesh position={[0, h / 2 + 0.12, 0]} castShadow receiveShadow>
+        <boxGeometry args={[w, h, d]} />
+        <meshStandardMaterial color={color} flatShading />
+      </mesh>
+      <Window position={[w / 2 - 0.18, h * 0.7, d / 2 + 0.02]} lit shutters={false} size={[0.2, 0.22]} />
+      <ShutterDoor position={[-0.12, 0.12, d / 2 + 0.02]} width={0.55} height={0.62} slats={6} />
+      <CorrugatedRoof width={w} depth={d} height={0.4} y={h + 0.12} color="#9aa7ad" />
+
+      {/* Hanging shop sign */}
+      <group position={[0, h - 0.05, d / 2 + 0.18]}>
+        <mesh>
+          <boxGeometry args={[w * 0.85, 0.2, 0.035]} />
+          <meshStandardMaterial color={color} flatShading />
+        </mesh>
+        <mesh position={[0, 0, 0.022]}>
+          <boxGeometry args={[w * 0.7, 0.1, 0.01]} />
+          <meshStandardMaterial color="#fdf6e3" flatShading />
+        </mesh>
+      </group>
+
+      {/* Awning support post */}
+      <mesh position={[w / 2 + 0.05, 0.45, d / 2 + 0.38]} castShadow>
+        <cylinderGeometry args={[0.025, 0.025, 0.9, 6]} />
+        <meshStandardMaterial color="#caa14a" flatShading />
+      </mesh>
+    </group>
+  );
+}
+
+/** Striped fabric awning shared across the retail row. */
+function Awning({ position, width }: { position: [number, number, number]; width: number }) {
+  const stripeCount = 8;
+  return (
+    <group position={position}>
+      {Array.from({ length: stripeCount }).map((_, i) => (
+        <mesh key={i} position={[(i - (stripeCount - 1) / 2) * (width / stripeCount), 0, 0]} rotation-x={-0.22}>
+          <boxGeometry args={[width / stripeCount - 0.02, 0.02, 0.62]} />
+          <meshStandardMaterial color={i % 2 === 0 ? "#3f7a52" : "#fdf6e3"} flatShading />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.01, -0.32]}>
+        <boxGeometry args={[width, 0.05, 0.05]} />
+        <meshStandardMaterial color="#caa14a" flatShading />
+      </mesh>
+    </group>
+  );
+}
+
+/** Floating glass-pill marker labeling a stop on the route, billboarded toward the camera. */
+function StationMarker({
+  position,
+  index,
+  title,
+  subtitle,
+}: {
+  position: [number, number, number];
+  index: string;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <group position={position}>
+      <mesh position={[0, -0.4, 0]}>
+        <cylinderGeometry args={[0.012, 0.012, 0.8, 6]} />
+        <meshStandardMaterial color="#fdf6e3" transparent opacity={0.55} flatShading />
+      </mesh>
+      <mesh position={[0, -0.8, 0]}>
+        <sphereGeometry args={[0.04, 10, 10]} />
+        <meshStandardMaterial color="#caa14a" emissive="#caa14a" emissiveIntensity={0.8} flatShading />
+      </mesh>
+      <Html center distanceFactor={7} style={{ pointerEvents: "none" }} zIndexRange={[5, 0]}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            padding: "8px 14px",
+            borderRadius: "999px",
+            background: "oklch(0.205 0.02 152 / 55%)",
+            border: "1px solid oklch(0.96 0.01 95 / 18%)",
+            backdropFilter: "blur(10px)",
+            whiteSpace: "nowrap",
+            boxShadow: "0 6px 18px rgba(0,0,0,0.35)",
+          }}
+        >
+          <span
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "22px",
+              height: "22px",
+              borderRadius: "999px",
+              background: "#caa14a",
+              color: "#23190f",
+              fontSize: "11px",
+              fontWeight: 700,
+              flexShrink: 0,
+            }}
+          >
+            {index}
+          </span>
+          <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
+            <span style={{ fontSize: "12.5px", fontWeight: 600, color: "#fdf6e3" }}>{title}</span>
+            <span style={{ fontSize: "10.5px", color: "rgba(253,246,227,0.65)" }}>{subtitle}</span>
+          </span>
+        </div>
+      </Html>
     </group>
   );
 }
@@ -736,50 +1015,51 @@ export function SupplyChainMap({ progressRef }: { progressRef: React.RefObject<n
       <Truck curve={curve} progressRef={progressRef} />
 
       {/* Depot — government procurement point */}
-      <Building
-        position={[depot.x - 0.2, 0, depot.z - 1.4]}
-        size={[2.2, 1.2, 1.6]}
-        color="#7fb88a"
-        roofColor="#3f7a52"
-        windows={2}
-        sign={{ color: "#3f7a52" }}
-      />
+      <DepotBuilding position={[depot.x - 0.2, 0, depot.z - 1.4]} />
       <CratePile origin={[depot.x - 0.6, 0, depot.z - 0.3]} count={9} rotationY={0.2} />
       <Figure position={[depot.x + 0.6, 0, depot.z - 0.5]} shirt="#caa14a" hat="hardhat" bobOffset={0} carrying />
       <Figure position={[depot.x + 0.9, 0, depot.z - 0.2]} shirt="#5b8fb0" hat="cap" bobOffset={1.4} />
       <LampPost position={[depot.x - 1.6, 0, depot.z + 0.4]} />
+      <StationMarker
+        position={[depot.x - 0.2, 1.9, depot.z - 1.4]}
+        index="01"
+        title="Government Depot"
+        subtitle="BADC / BCIC procurement"
+      />
 
       {/* Warehouse — climate-controlled godown */}
-      <Building
-        position={[warehouse.x + 0.4, 0, warehouse.z + 1.6]}
-        size={[3, 1.7, 2]}
-        color="#caa14a"
-        roofColor="#7a5a2a"
-        windows={3}
-        sign={{ color: "#caa14a" }}
-      />
+      <WarehouseBuilding position={[warehouse.x + 0.4, 0, warehouse.z + 1.6]} />
       <CratePile origin={[warehouse.x, 0, warehouse.z + 0.6]} count={12} rotationY={-0.1} />
       <CratePile origin={[warehouse.x + 1, 0, warehouse.z + 0.6]} count={6} rotationY={0.3} />
       <Figure position={[warehouse.x - 0.5, 0, warehouse.z + 0.3]} shirt="#3f7a52" hat="hardhat" bobOffset={0.6} carrying />
       <Figure position={[warehouse.x - 0.8, 0, warehouse.z + 0.7]} shirt="#caa14a" hat="hardhat" bobOffset={2.1} />
       <LampPost position={[warehouse.x + 2.1, 0, warehouse.z + 0.3]} />
+      <StationMarker
+        position={[warehouse.x + 0.4, 2.4, warehouse.z + 1.6]}
+        index="02"
+        title="Climate-Controlled Godown"
+        subtitle="Secure transport & storage"
+      />
 
       {/* Retailer row — verified retail distribution */}
-      {[-1.2, 0, 1.2].map((offset, i) => (
-        <Building
+      {[-1.25, 0, 1.25].map((offset, i) => (
+        <RetailShop
           key={i}
           position={[retail.x + offset, 0, retail.z - 1.5]}
-          size={[1, 1, 1]}
           color={["#5b8fb0", "#caa14a", "#7fb88a"][i]}
-          roofColor="#3a2f1c"
-          windows={1}
-          sign={{ color: ["#5b8fb0", "#caa14a", "#7fb88a"][i] }}
         />
       ))}
+      <Awning position={[retail.x, 1.45, retail.z - 1.06]} width={3.9} />
       <Figure position={[retail.x - 1.6, 0, retail.z - 0.6]} shirt="#5b8fb0" hat="cap" bobOffset={0.9} />
       <Figure position={[retail.x + 0.3, 0, retail.z - 0.6]} shirt="#7fb88a" bobOffset={1.8} carrying />
       <CratePile origin={[retail.x, 0, retail.z - 0.4]} count={4} rotationY={0.4} />
       <LampPost position={[retail.x - 2.3, 0, retail.z + 0.4]} />
+      <StationMarker
+        position={[retail.x, 1.9, retail.z - 1.5]}
+        index="03"
+        title="Verified Retailers"
+        subtitle="Last-mile distribution"
+      />
 
       {/* Ambient trees along the route */}
       {[
