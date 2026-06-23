@@ -14,14 +14,25 @@ export function useScrollProgressRef() {
   const progress = useRef(0);
 
   useEffect(() => {
-    const onScroll = () => {
+    // Layout reads (offsetTop/offsetHeight) are cached and only recomputed on
+    // resize, not on every scroll tick — recomputing them per-tick forces a
+    // synchronous reflow on every scroll event, which is the main source of
+    // scroll-jank since trackpad/momentum scrolling fires many events per frame.
+    let mapEnd = 0;
+    let fadeEnd = 0;
+    let ticking = false;
+    let lastOpacityStr = "";
+
+    const measure = () => {
       const section = document.getElementById("supply-chain");
-      const mapEnd = section
+      mapEnd = section
         ? section.offsetTop + section.offsetHeight
         : document.documentElement.scrollHeight - window.innerHeight;
-      const fadeEnd = mapEnd + window.innerHeight * 0.6;
-      const y = window.scrollY;
+      fadeEnd = mapEnd + window.innerHeight * 0.6;
+    };
 
+    const apply = () => {
+      const y = window.scrollY;
       progress.current = mapEnd > 0 ? Math.min(1, Math.max(0, y / mapEnd)) : 0;
 
       const minOpacity = 0.12;
@@ -30,14 +41,32 @@ export function useScrollProgressRef() {
         const t = fadeEnd > mapEnd ? Math.min(1, (y - mapEnd) / (fadeEnd - mapEnd)) : 1;
         opacity = 1 - t * (1 - minOpacity);
       }
-      document.documentElement.style.setProperty("--map-opacity", opacity.toFixed(3));
+      const opacityStr = opacity.toFixed(3);
+      if (opacityStr !== lastOpacityStr) {
+        lastOpacityStr = opacityStr;
+        document.documentElement.style.setProperty("--map-opacity", opacityStr);
+      }
+      ticking = false;
     };
-    onScroll();
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(apply);
+    };
+
+    const onResize = () => {
+      measure();
+      apply();
+    };
+
+    measure();
+    apply();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    window.addEventListener("resize", onResize);
     return () => {
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 

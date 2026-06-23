@@ -638,9 +638,8 @@ function StationMarker({
             gap: "10px",
             padding: "8px 14px",
             borderRadius: "999px",
-            background: "oklch(0.205 0.02 152 / 55%)",
+            background: "oklch(0.205 0.02 152 / 88%)",
             border: "1px solid oklch(0.96 0.01 95 / 18%)",
-            backdropFilter: "blur(10px)",
             whiteSpace: "nowrap",
             boxShadow: "0 6px 18px rgba(0,0,0,0.35)",
           }}
@@ -1040,17 +1039,33 @@ function useStationPlacer(curve: THREE.CatmullRomCurve3, t: number) {
   }, [curve, t]);
 }
 
+/**
+ * Eases the raw scroll-derived progress (0-1, which jumps in whatever steps
+ * the wheel/trackpad/scrollbar delivers) toward a smoothed value once per
+ * frame. The truck and camera read this instead of the raw ref so a chunky
+ * scroll delta (e.g. a single big mouse-wheel tick) becomes a fluid glide
+ * along the curve rather than a visible teleport.
+ */
+function useSmoothedProgressRef(progressRef: React.RefObject<number>) {
+  const smoothed = useRef(progressRef.current ?? 0);
+  useFrame((_, delta) => {
+    smoothed.current = THREE.MathUtils.damp(smoothed.current, progressRef.current, 6, delta);
+  });
+  return smoothed;
+}
+
 export function SupplyChainMap({ progressRef }: { progressRef: React.RefObject<number> }) {
   const curve = useRouteCurve();
   const atDepot = useStationPlacer(curve, STATIONS.depot + 0.001);
   const atWarehouse = useStationPlacer(curve, STATIONS.warehouse);
   const atRetail = useStationPlacer(curve, STATIONS.retail - 0.001);
+  const smoothedProgressRef = useSmoothedProgressRef(progressRef);
 
   return (
     <group>
       <GroundAndRoad curve={curve} />
-      <MapCameraRig curve={curve} progressRef={progressRef} />
-      <Truck curve={curve} progressRef={progressRef} />
+      <MapCameraRig curve={curve} progressRef={smoothedProgressRef} />
+      <Truck curve={curve} progressRef={smoothedProgressRef} />
 
       {/* Depot — government procurement point. Road half-width is 0.55, so every
           lateral offset below clears it with a healthy margin (~0.6+). */}
