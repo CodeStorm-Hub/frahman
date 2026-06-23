@@ -126,18 +126,20 @@ export function SupplyChain() {
     <section id="supply-chain" className="py-24 text-white">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <Reveal>
-          <span className="text-xs font-semibold uppercase tracking-widest text-[var(--p-gold)]">
-            Our Supply Chain
-          </span>
-          <h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-tight md:text-4xl">
-            Three steps from state godown to farmer&apos;s field
-          </h2>
+          <div className="p-glass inline-block rounded-2xl px-5 py-4 shadow-lg shadow-black/30">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[var(--p-gold)]">
+              Our Supply Chain
+            </span>
+            <h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-tight md:text-4xl">
+              Three steps from state godown to farmer&apos;s field
+            </h2>
+          </div>
         </Reveal>
 
         <div className="mt-14 grid gap-8 md:grid-cols-3">
           {steps.map((s, i) => (
             <Reveal key={s.title} delay={i * 0.12} className="relative">
-              <div className="flex flex-col gap-4">
+              <div className="p-glass flex h-full flex-col gap-4 rounded-2xl p-6 shadow-lg shadow-black/30">
                 <div className="flex items-center gap-3">
                   <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/25 text-sm font-semibold">
                     {i + 1}
@@ -326,23 +328,23 @@ export function Contact() {
               <input
                 type="text"
                 placeholder="First name"
-                className="rounded-xl border border-[var(--p-glass-border)] bg-white/5 px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
+                className="rounded-xl border border-[var(--p-glass-border)] bg-black/35 backdrop-blur-sm px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
               />
               <input
                 type="text"
                 placeholder="Last name"
-                className="rounded-xl border border-[var(--p-glass-border)] bg-white/5 px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
+                className="rounded-xl border border-[var(--p-glass-border)] bg-black/35 backdrop-blur-sm px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
               />
             </div>
             <input
               type="email"
               placeholder="Email address"
-              className="w-full rounded-xl border border-[var(--p-glass-border)] bg-white/5 px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
+              className="w-full rounded-xl border border-[var(--p-glass-border)] bg-black/35 backdrop-blur-sm px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
             />
             <textarea
               placeholder="How can we help?"
               rows={4}
-              className="w-full rounded-xl border border-[var(--p-glass-border)] bg-white/5 px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
+              className="w-full rounded-xl border border-[var(--p-glass-border)] bg-black/35 backdrop-blur-sm px-4 py-2.5 text-sm text-[var(--p-ink)] placeholder:text-[var(--p-ink-soft)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--p-forest)]/40"
             />
             <button
               type="submit"
