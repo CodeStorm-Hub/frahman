@@ -582,10 +582,18 @@ function RetailShop({
 }
 
 /** Striped fabric awning shared across the retail row. */
-function Awning({ position, width }: { position: [number, number, number]; width: number }) {
+function Awning({
+  position,
+  width,
+  rotationY = 0,
+}: {
+  position: [number, number, number];
+  width: number;
+  rotationY?: number;
+}) {
   const stripeCount = 8;
   return (
-    <group position={position}>
+    <group position={position} rotation-y={rotationY}>
       {Array.from({ length: stripeCount }).map((_, i) => (
         <mesh key={i} position={[(i - (stripeCount - 1) / 2) * (width / stripeCount), 0, 0]} rotation-x={-0.22}>
           <boxGeometry args={[width / stripeCount - 0.02, 0.02, 0.62]} />
@@ -1006,11 +1014,37 @@ function MapCameraRig({ curve, progressRef }: { curve: THREE.CatmullRomCurve3; p
 
 /* ---------------------------------- Scene composition --------------------------------- */
 
+/**
+ * Builds a (lateral, forward) -> world Vector3 placer for a station, using the
+ * curve's true tangent/normal at that point — not raw world x/z deltas. The
+ * road bends at varying angles along its length, so a fixed world-axis offset
+ * (e.g. "z - 1.4") can land a building right back on the road at one station
+ * even though it cleared it at another. Placing along the real perpendicular
+ * (`normal`) guarantees the same road clearance everywhere.
+ */
+function useStationPlacer(curve: THREE.CatmullRomCurve3, t: number) {
+  return useMemo(() => {
+    const point = curve.getPointAt(t);
+    const tangent = curve.getTangentAt(t).normalize();
+    const normal = new THREE.Vector3(-tangent.z, 0, tangent.x).normalize();
+    // Angle that rotates an object's local +x axis onto the road's tangent
+    // direction — used to align row layouts (the retail awning) with the road.
+    const angle = Math.atan2(-tangent.z, tangent.x);
+    const at = ((lateral: number, forward = 0): [number, number, number] => [
+      point.x + normal.x * lateral + tangent.x * forward,
+      0,
+      point.z + normal.z * lateral + tangent.z * forward,
+    ]) as ((lateral: number, forward?: number) => [number, number, number]) & { angle: number };
+    at.angle = angle;
+    return at;
+  }, [curve, t]);
+}
+
 export function SupplyChainMap({ progressRef }: { progressRef: React.RefObject<number> }) {
   const curve = useRouteCurve();
-  const depot = curve.getPointAt(STATIONS.depot + 0.001);
-  const warehouse = curve.getPointAt(STATIONS.warehouse);
-  const retail = curve.getPointAt(STATIONS.retail - 0.001);
+  const atDepot = useStationPlacer(curve, STATIONS.depot + 0.001);
+  const atWarehouse = useStationPlacer(curve, STATIONS.warehouse);
+  const atRetail = useStationPlacer(curve, STATIONS.retail - 0.001);
 
   return (
     <group>
@@ -1018,48 +1052,51 @@ export function SupplyChainMap({ progressRef }: { progressRef: React.RefObject<n
       <MapCameraRig curve={curve} progressRef={progressRef} />
       <Truck curve={curve} progressRef={progressRef} />
 
-      {/* Depot — government procurement point */}
-      <DepotBuilding position={[depot.x - 0.2, 0, depot.z - 1.4]} />
-      <CratePile origin={[depot.x - 0.9, 0, depot.z - 1.1]} count={9} rotationY={0.2} />
-      <Figure position={[depot.x + 0.5, 0, depot.z - 1.0]} shirt="#caa14a" hat="hardhat" bobOffset={0} carrying />
-      <Figure position={[depot.x + 0.9, 0, depot.z - 0.9]} shirt="#5b8fb0" hat="cap" bobOffset={1.4} />
-      <LampPost position={[depot.x - 1.8, 0, depot.z + 1.0]} />
+      {/* Depot — government procurement point. Road half-width is 0.55, so every
+          lateral offset below clears it with a healthy margin (~0.6+). */}
+      <DepotBuilding position={atDepot(-2.1, 0)} />
+      <CratePile origin={atDepot(-1.25, -0.5)} count={9} rotationY={0.2} />
+      <Figure position={atDepot(-1.0, 0.5)} shirt="#caa14a" hat="hardhat" bobOffset={0} carrying />
+      <Figure position={atDepot(-1.3, 0.85)} shirt="#5b8fb0" hat="cap" bobOffset={1.4} />
+      <LampPost position={atDepot(-1.0, -1.2)} />
       <StationMarker
-        position={[depot.x - 0.2, 1.9, depot.z - 1.4]}
+        position={atDepot(-2.1, 0).map((v, i) => (i === 1 ? 1.9 : v)) as [number, number, number]}
         index="01"
         title="Government Depot"
         subtitle="BADC / BCIC procurement"
       />
 
-      {/* Warehouse — climate-controlled godown */}
-      <WarehouseBuilding position={[warehouse.x + 0.4, 0, warehouse.z + 1.6]} />
-      <CratePile origin={[warehouse.x + 0.1, 0, warehouse.z + 1.1]} count={12} rotationY={-0.1} />
-      <CratePile origin={[warehouse.x + 1, 0, warehouse.z + 1.2]} count={6} rotationY={0.3} />
-      <Figure position={[warehouse.x - 0.3, 0, warehouse.z + 1.0]} shirt="#3f7a52" hat="hardhat" bobOffset={0.6} carrying />
-      <Figure position={[warehouse.x - 0.6, 0, warehouse.z + 1.3]} shirt="#caa14a" hat="hardhat" bobOffset={2.1} />
-      <LampPost position={[warehouse.x + 2.2, 0, warehouse.z + 0.9]} />
+      {/* Warehouse — climate-controlled godown. Largest footprint, so it sits
+          furthest back from the road. */}
+      <WarehouseBuilding position={atWarehouse(2.6, 0)} />
+      <CratePile origin={atWarehouse(1.5, -0.9)} count={12} rotationY={-0.1} />
+      <CratePile origin={atWarehouse(1.6, 0.7)} count={6} rotationY={0.3} />
+      <Figure position={atWarehouse(1.2, -1.3)} shirt="#3f7a52" hat="hardhat" bobOffset={0.6} carrying />
+      <Figure position={atWarehouse(1.0, -1.6)} shirt="#caa14a" hat="hardhat" bobOffset={2.1} />
+      <LampPost position={atWarehouse(1.1, 1.5)} />
       <StationMarker
-        position={[warehouse.x + 0.4, 2.4, warehouse.z + 1.6]}
+        position={atWarehouse(2.6, 0).map((v, i) => (i === 1 ? 2.4 : v)) as [number, number, number]}
         index="02"
         title="Climate-Controlled Godown"
         subtitle="Secure transport & storage"
       />
 
-      {/* Retailer row — verified retail distribution */}
-      {[-1.25, 0, 1.25].map((offset, i) => (
-        <RetailShop
-          key={i}
-          position={[retail.x + offset, 0, retail.z - 1.5]}
-          color={["#5b8fb0", "#caa14a", "#7fb88a"][i]}
-        />
+      {/* Retailer row — verified retail distribution, three shopfronts spread
+          along the road (forward axis) at a fixed safe lateral offset. */}
+      {[-1.25, 0, 1.25].map((forward, i) => (
+        <RetailShop key={i} position={atRetail(-1.7, forward)} color={["#5b8fb0", "#caa14a", "#7fb88a"][i]} />
       ))}
-      <Awning position={[retail.x, 1.45, retail.z - 1.06]} width={3.9} />
-      <Figure position={[retail.x - 1.6, 0, retail.z - 1.1]} shirt="#5b8fb0" hat="cap" bobOffset={0.9} />
-      <Figure position={[retail.x + 0.3, 0, retail.z - 1.1]} shirt="#7fb88a" bobOffset={1.8} carrying />
-      <CratePile origin={[retail.x, 0, retail.z - 1.0]} count={4} rotationY={0.4} />
-      <LampPost position={[retail.x - 2.4, 0, retail.z + 0.9]} />
+      <Awning
+        position={atRetail(-1.7, 0).map((v, i) => (i === 1 ? 1.45 : v)) as [number, number, number]}
+        width={3.9}
+        rotationY={atRetail.angle}
+      />
+      <Figure position={atRetail(-1.0, -1.9)} shirt="#5b8fb0" hat="cap" bobOffset={0.9} />
+      <Figure position={atRetail(-1.0, 0.6)} shirt="#7fb88a" bobOffset={1.8} carrying />
+      <CratePile origin={atRetail(-1.0, 1.6)} count={4} rotationY={0.4} />
+      <LampPost position={atRetail(-1.0, -2.3)} />
       <StationMarker
-        position={[retail.x, 1.9, retail.z - 1.5]}
+        position={atRetail(-1.7, 0).map((v, i) => (i === 1 ? 1.9 : v)) as [number, number, number]}
         index="03"
         title="Verified Retailers"
         subtitle="Last-mile distribution"
